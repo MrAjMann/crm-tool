@@ -4,15 +4,14 @@ import (
 	"time"
 )
 
-// NoteCategory defines the type of note.
 type NoteCategory string
 
 const (
-	InteractionNote         NoteCategory = "Interaction"          // Notes from interactions like calls, emails
-	FeedbackNote            NoteCategory = "Feedback"             // Customer feedback or opinions
-	InternalObservationNote NoteCategory = "Internal Observation" // Internal observations and insights
-	FollowUpNote            NoteCategory = "Follow-Up"            // Follow-up actions or reminders
-	OtherNote               NoteCategory = "Other"                // Any other type of note
+	InteractionNote         NoteCategory = "Interaction"
+	FeedbackNote            NoteCategory = "Feedback"
+	InternalObservationNote NoteCategory = "Internal Observation"
+	FollowUpNote            NoteCategory = "Follow-Up"
+	OtherNote               NoteCategory = "Other"
 )
 
 type Note struct {
