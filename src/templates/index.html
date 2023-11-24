@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link href="/src/output.css" rel="stylesheet" />
+    <title>Hello from the other side</title>
+  </head>
+  <body class="">
+    <div class="flex">
+      {{template "sidebar.html"}}
+      <div class="flex-grow container mx-auto p-4">
+        <!-- Customer List Section -->
+        <div class="w-full lg:w-2/3">
+          <h1 class="mb-4 text-4xl text-white">Customers</h1>
+          <table class="min-w-full leading-normal">
+            <thead>
+              <tr>
+                <th
+                  class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider"
+                >
+                  First Name
+                </th>
+                <th
+                  class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider"
+                >
+                  Email
+                </th>
+                <th
+                  class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider"
+                >
+                  Company Name
+                </th>
+                <th
+                  class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider"
+                >
+                  Phone
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {{ range . }}
+              <tr class="customer-row" data-customer-id="{{ .Id }}">
+                <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+                  {{ .FirstName }}
+                </td>
+                <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+                  {{ .Email }}
+                </td>
+                <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+                  {{ .CompanyName }}
+                </td>
+                <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+                  {{ .Phone }}
+                </td>
+              </tr>
+              {{ end }}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
