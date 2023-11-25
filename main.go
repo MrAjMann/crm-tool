@@ -51,6 +51,9 @@ func main() {
 
 	http.HandleFunc("/", customerHandler.GetAllCustomers)          // Home page, possibly with a sidebar
 	http.HandleFunc("/add-customer/", customerHandler.AddCustomer) // Handle adding a customer
-
+	http.HandleFunc("/customer/", customerHandler.GetCustomer)     // Handle getting a customer
+	http.HandleFunc("/create-lead-modal", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "src/templates/modals/createLeadModal.html")
+	})
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }

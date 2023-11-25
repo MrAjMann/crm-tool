@@ -44,3 +44,24 @@ func (repo *CustomerRepository) AddCustomer(customer model.Customer) (string, er
 	}
 	return customerId, nil
 }
+
+func (repo *CustomerRepository) GetCustomerById(id string) (model.Customer, error) {
+	println(id)
+	var customer model.Customer
+
+	query := `SELECT Id, FirstName,  Email, Phone, CompanyName
+						FROM customers
+						WHERE Id = $1`
+
+	err := repo.db.QueryRow(query, id).Scan(
+		&customer.Id,
+		&customer.FirstName,
+		&customer.Email,
+		&customer.Phone,
+		&customer.CompanyName,
+	)
+	if err != nil {
+		return customer, err
+	}
+	return customer, nil
+}

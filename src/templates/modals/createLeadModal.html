@@ -1,0 +1,94 @@
+<div
+  class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full"
+  id="modal-overlay"
+>
+  <!-- Modal -->
+  <div
+    class="relative top-10 mx-auto p-5 border w-full max-w-lg shadow-lg rounded-md bg-white"
+    style="margin-top: 5%"
+  >
+    <div class="text-center">
+      <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
+        Add New Lead
+      </h3>
+
+      <form id="newLeadForm" class="space-y-4">
+        <input
+          type="text"
+          name="firstName"
+          class="w-full px-3 py-2 border rounded"
+          placeholder="First Name"
+        />
+        <input
+          type="text"
+          name="lastName"
+          class="w-full px-3 py-2 border rounded"
+          placeholder="Last Name"
+        />
+        <input
+          type="email"
+          name="email"
+          class="w-full px-3 py-2 border rounded"
+          placeholder="Email"
+        />
+        <input
+          type="text"
+          name="companyName"
+          class="w-full px-3 py-2 border rounded"
+          placeholder="Company Name"
+        />
+        <input
+          type="text"
+          name="phone"
+          class="w-full px-3 py-2 border rounded"
+          placeholder="Phone"
+        />
+        <input
+          type="text"
+          name="title"
+          class="w-full px-3 py-2 border rounded"
+          placeholder="Title"
+        />
+        <input
+          type="text"
+          name="website"
+          class="w-full px-3 py-2 border rounded"
+          placeholder="Website"
+        />
+        <input
+          type="text"
+          name="industry"
+          class="w-full px-3 py-2 border rounded"
+          placeholder="Industry"
+        />
+        <input
+          type="text"
+          name="source"
+          class="w-full px-3 py-2 border rounded"
+          placeholder="Source"
+        />
+        <button
+          type="submit"
+          class="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600"
+        >
+          Create Lead
+        </button>
+      </form>
+
+      <button
+        onclick="closeModal()"
+        class="mt-4 bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+      >
+        Close
+      </button>
+    </div>
+  </div>
+</div>
+<script>
+  function closeModal() {
+    var modalOverlay = document.getElementById("modal-overlay");
+    if (modalOverlay) {
+      modalOverlay.remove(); // Remove the modal content
+    }
+  }
+</script>
