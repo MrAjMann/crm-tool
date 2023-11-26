@@ -14,23 +14,13 @@ func NewLeadRepository(db *sql.DB) *LeadRepository {
 	return &LeadRepository{db: db}
 }
 
-func (repo *LeadRepository) GetAllLeads() ([]model.Lead, error) {
-	rows, err := repo.db.Query("SELECT Id, FirstName, Email, CompanyName, Phone FROM leads")
+// Addlead inserts a new lead into the database
+func (repo *LeadRepository) AddLead(lead model.Lead) (string, error) {
+	var leadId string
+	err := repo.db.QueryRow("INSERT INTO leads (FirstName, LastName, Email, CompanyName, Phone, Title, Website, Industry, Source ) VALUES ($1, $2, $3, $4, $5,$6,$7, $8, $9) RETURNING Id",
+		lead.FirstName, lead.LastName, lead.Email, lead.CompanyName, lead.Phone, lead.Title, lead.Website, lead.Industry, lead.Source).Scan(&leadId)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
-	defer rows.Close()
-
-	var leads []model.Lead
-	for rows.Next() {
-		var l model.Lead
-		if err := rows.Scan(&l.LeadId, &l.FirstName, &l.Email, &l.CompanyName, &l.Phone); err != nil {
-			return nil, err
-		}
-		leads = append(leads, l)
-	}
-
-	return leads, nil
+	return leadId, nil
 }
-
-

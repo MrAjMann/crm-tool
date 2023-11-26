@@ -19,27 +19,25 @@ func NewCustomerHandler(repo *repository.CustomerRepository, tmpl *template.Temp
 	return &CustomerHandler{repo: repo, tmpl: tmpl}
 }
 
-// Get All Customers
 func (h *CustomerHandler) GetAllCustomers(w http.ResponseWriter, r *http.Request) {
 	customers, err := h.repo.GetAllCustomers()
 	if err != nil {
-		log.Printf("Error fetching customers: %v\n", err)
-		http.Error(w, "Database error", http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	err = h.tmpl.ExecuteTemplate(w, "index.html", customers)
+	err = h.tmpl.ExecuteTemplate(w, "customers.html", customers)
 	if err != nil {
-		log.Printf("Error executing template: %v\n", err)
+		log.Println("Error executing template:", err)
 		http.Error(w, "Error executing template", http.StatusInternalServerError)
 	}
-
 }
 
 // Add a Customer
 
 func (h *CustomerHandler) AddCustomer(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
+		log.Printf("Method not allowed: %v\n", r.Method)
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
@@ -65,7 +63,7 @@ func (h *CustomerHandler) AddCustomer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tmpl, err := template.ParseFiles("src/templates/index.html")
+	tmpl, err := template.ParseFiles("src/templates/customers.html")
 	if err != nil {
 		http.Error(w, "Error loading template", http.StatusInternalServerError)
 		log.Printf("Error loading template: %v\n", err)
@@ -100,8 +98,6 @@ func (h *CustomerHandler) GetCustomer(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Database error on fetching customer: %v\n", err)
 		return
 	}
-
-	
 
 	tmpl, err := template.ParseFiles("src/templates/customer.html")
 	if err != nil {
