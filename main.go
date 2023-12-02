@@ -78,6 +78,8 @@ func main() {
 	http.HandleFunc("/add-customer/", customerHandler.AddCustomer) // Handle adding a customer
 
 	// Lead Routes
+	http.HandleFunc("/leads", leadHandler.GetAllLeads) // Leads page
+	http.HandleFunc("/lead/", leadHandler.GetLead)     // Handle getting a lead
 	http.HandleFunc("/add-lead/", leadHandler.AddLead) // Handle adding a lead
 	http.HandleFunc("src/templates/modals/create-lead-modal", func(w http.ResponseWriter, r *http.Request) {
 		err := sideBarTmpl.ExecuteTemplate(w, "createLeadModal.html", nil)

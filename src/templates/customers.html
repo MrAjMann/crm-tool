@@ -31,6 +31,11 @@
 								<th
 									class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider"
 								>
+									CustomerId
+								</th>
+								<th
+									class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider"
+								>
 									Name
 								</th>
 								<th
@@ -57,13 +62,14 @@
 						</thead>
 
 						<tbody>
-							<!-- Customer Rows (Populated via server-side Go template or HTMX) -->
-							<!-- Example Row -->
 
 							{{ range . }}
 							<tr
 								class="customer-row bg-gray-200 hover:bg-blue-700 gap-4 cursor-pointer"
 							>
+								<td class="px-5 py-5 border-b border-gray-200 text-sm">
+									{{ .Id }}
+								</td>
 								<td class="px-5 py-5 border-b border-gray-200 text-sm">
 									{{ .FirstName }}
 								</td>
