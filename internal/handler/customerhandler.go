@@ -4,7 +4,7 @@ import (
 	"html/template"
 	"log"
 	"net/http"
-	"path"
+	"strings"
 
 	"github.com/MrAjMann/crm/internal/model"
 	"github.com/MrAjMann/crm/internal/repository"
@@ -31,6 +31,7 @@ func (h *CustomerHandler) GetAllCustomers(w http.ResponseWriter, r *http.Request
 		log.Println("Error executing template:", err)
 		http.Error(w, "Error executing template", http.StatusInternalServerError)
 	}
+
 }
 
 // Add a Customer
@@ -85,13 +86,15 @@ func (h *CustomerHandler) GetCustomer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	base, idStr := path.Split(r.URL.Path)
-	if base != "/customer/" {
-		http.Error(w, "Invalid path", http.StatusBadRequest)
+	idStr := strings.TrimPrefix(r.URL.Path, "/customer/")
+	idStr = strings.TrimSuffix(idStr, "/") // Optional, based on URL structure
+
+	if idStr == "" {
+		http.Error(w, "Invalid customer ID", http.StatusBadRequest)
 		return
 	}
 
-	// Get the customer id from request
+	// Get the customer by id from the repository
 	customer, err := h.repo.GetCustomerById(idStr)
 	if err != nil {
 		http.Error(w, "Database error on fetching customer", http.StatusInternalServerError)
@@ -99,19 +102,19 @@ func (h *CustomerHandler) GetCustomer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tmpl, err := template.ParseFiles("src/templates/customer.html")
-	if err != nil {
-		http.Error(w, "Error loading template", http.StatusInternalServerError)
-		log.Printf("Error loading template: %v\n", err)
-		return
-	}
-
-	err = tmpl.ExecuteTemplate(w, "customer.html", customer)
-	log.Println(customer)
+	// Assuming tmpl is a template instance parsed at application initialization
+	err = h.tmpl.ExecuteTemplate(w, "customer.html", customer)
 	if err != nil {
 		http.Error(w, "Error executing template", http.StatusInternalServerError)
 		log.Printf("Error executing template: %v\n", err)
 	}
+
+	// err = tmpl.ExecuteTemplate(w, "customer.html", customer)
+	// log.Println(customer)
+	// if err != nil {
+	// 	http.Error(w, "Error executing template", http.StatusInternalServerError)
+	// 	log.Printf("Error executing template: %v\n", err)
+	// }
 
 	// Call the repository function to get the customer
 	// Execute the template with the customer data

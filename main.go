@@ -56,6 +56,7 @@ func main() {
 	if customerRepo == nil {
 		println("Creating customers table")
 	}
+
 	leadRepo := repository.NewLeadRepository(db)
 
 	dashboardHandler := handler.NewDashboardHandler(sideBarTmpl)
@@ -67,8 +68,10 @@ func main() {
 
 	// Setup routes
 	fs := http.FileServer(http.Dir("src"))
-	http.Handle("/src/", http.StripPrefix("/src/", fs))
+	css := http.FileServer(http.Dir("css"))
 
+	http.Handle("/src/", http.StripPrefix("/src/", fs))
+	http.Handle("/css/", http.StripPrefix("/css/", css))
 	// Dashboard Routes
 	http.HandleFunc("/", dashboardHandler.Dashboard)
 
@@ -87,6 +90,8 @@ func main() {
 			http.Error(w, "Error loading modal", http.StatusInternalServerError)
 			log.Printf("Error loading modal: %v\n", err)
 		}
+		log.Printf("Modal loaded")
+
 	})
 
 	log.Fatal(http.ListenAndServe(":8080", nil))

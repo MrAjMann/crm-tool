@@ -1,80 +1,63 @@
 <!-- Sidebar Structure -->
 <nav
-	id="sidebar"
-	aria-label="Sidebar"
-	class="bg-gray-100 border-r w-[250px] h-screen"
+    id="sidebar"
+    aria-label="Sidebar"
+    style="width: 16rem;"
+    class=" border-r border-gray-50 border-opacity-10 h-screen text-white flex flex-col"
 >
-	<div class="flex flex-col p-3">
-		<a href="/" class="flex items-center mb-4">
-			<span class="text-xl font-semibold">CRM Dashboard</span>
-		</a>
-		<hr />
+    <div class="flex-grow flex flex-col p-3 border-b ">
+        <a href="/" class="flex items-center mb-4">
+            <span class="text-xl font-semibold whitespace-nowrap">DataNect CRM</span>
+        </a>
+        
+        <!-- Navigation Links -->
+        <ul class="flex-grow flex flex-col gap-y-4 my-8 overflow-auto">
+            <li>
+                <a href="/" class="w-full py-2 px-3 hover:bg-gray-700  rounded text-left block"> 
+                    Dashboard
+                </a>
+            </li>
+            <li>
+                <a href="/customers" class="w-full py-2 px-3 hover:bg-gray-700  rounded text-left block">
+                    Customers
+                </a>
+            </li>
+            <li>
+                <a href="/leads" class="w-full py-2 px-3 hover:bg-gray-700  rounded text-left block">
+                    Leads
+                </a>
+            </li>
+            <li>
+                <a href="/invoices" class="w-full py-2 px-3 hover:bg-gray-700  rounded text-left block">
+                    Invoices
+                </a>
+            </li>
+            <li>
+                <a href="#" class="w-full py-2 px-3 hover:bg-gray-700  rounded text-left block">
+                    Reports
+                </a>
+            </li>
 
-		<!-- Navigation Links -->
-		<ul class="flex flex-col gap-y-4 my-8">
-			<li>
-				<a href="/" class="py-2 px-3 text-gray-700 hover:bg-blue-200 rounded">
-					Dashboard
-				</a>
-			</li>
-			<li>
-				<a
-					href="/customers"
-					class="py-2 px-3 text-gray-700 hover:bg-blue-200 rounded"
-				>
-					Customers
-				</a>
-			</li>
-			<li>
-				<a href="#" class="py-2 px-3 text-gray-700 hover:bg-blue-200 rounded">
-					Reports
-				</a>
-			</li>
-			<li>
-				<a href="#" class="py-2 px-3 text-gray-700 hover:bg-blue-200 rounded">
-					Settings
-				</a>
-			</li>
-		</ul>
-		<hr class="my-4" />
-
-		<!-- User Dropdown -->
-		<div class="pt-4">
-			<a
-				href="#"
-				class="flex items-center p-2 text-gray-700 hover:bg-blue-200 rounded"
-			>
-				<img
-					src="https://via.placeholder.com/32"
-					alt="User"
-					class="rounded-full mr-3"
-				/>
-				<span>User Name</span>
-			</a>
-			<!-- Dropdown Links -->
-			<ul class="pt-2">
-				<li>
-					<a
-						href="#"
-						class="py-2 px-3 text-gray-700 hover:bg-blue-200 rounded block"
-						>Profile</a
-					>
-				</li>
-				<li>
-					<a
-						href="#"
-						class="py-2 px-3 text-gray-700 hover:bg-blue-200 rounded block"
-						>Settings</a
-					>
-				</li>
-				<li>
-					<a
-						href="#"
-						class="py-2 px-3 text-gray-700 hover:bg-blue-200 rounded block"
-						>Logout</a
-					>
-				</li>
-			</ul>
-		</div>
-	</div>
+        </ul>
+    </div>
+    
+    <!-- User Dropdown -->
+    <div class="p-3 mt-auto">
+        <a href="#" class="flex items-center p-2 hover:bg-gray-700 rounded">
+            <img src="https://via.placeholder.com/32" alt="User" class="rounded-full mr-3" />
+            <span class="whitespace-nowrap">User Name</span>
+        </a>
+        <!-- Dropdown Links -->
+        <ul class="pt-2">
+            <li>
+                <a href="#" class="w-full py-2 px-3 hover:bg-gray-700  rounded text-left block">Profile</a>
+            </li>
+            <li>
+                <a href="#" class="w-full py-2 px-3 hover:bg-gray-700  rounded text-left block">Settings</a>
+            </li>
+            <li>
+                <a href="#" class="w-full py-2 px-3 hover:bg-gray-700  rounded text-left block">Logout</a>
+            </li>
+        </ul>
+    </div>
 </nav>

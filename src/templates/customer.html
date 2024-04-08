@@ -1,52 +1,59 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
+<head>
     <!-- Meta tags, Tailwind CSS -->
-    <link href="/src/output.css" rel="stylesheet" />
-    <title>Customer Details</title>
-  </head>
-  <body class="bg-gray-100" data-customer-id="{{ .Id }}">
-    <div class="container mx-auto p-4">
-      <h1 class="text-2xl font-semibold text-gray-800 mb-4">
-        Customer Details
-      </h1>
-      {{if .Id}}
-      <div class="bg-white shadow-md rounded p-6">
-        <div class="grid md:grid-cols-2 gap-4">
-          <div>
-            <h2 class="text-xl font-semibold text-gray-700 mb-2">
-              Personal Information
-            </h2>
-            <p class="text-gray-600"><strong>Name:</strong> {{.FirstName}}</p>
-            <p class="text-gray-600"><strong>Email:</strong> {{.Email}}</p>
-            <p class="text-gray-600"><strong>Phone:</strong> {{.Phone}}</p>
-            <p class="text-gray-600"><strong>Title:</strong></p>
-          </div>
-          <div>
-            <h2 class="text-xl font-semibold text-gray-700 mb-2">
-              Company Information
-            </h2>
-            <p class="text-gray-600">
-              <strong>Company:</strong> {{.CompanyName}}
-            </p>
-            <p class="text-gray-600"><strong>Industry:</strong> Technology</p>
-            <p class="text-gray-600">
-              <strong>Website:</strong>
-              <a href="#" class="text-blue-600">www.abccorp.com</a>
-            </p>
-          </div>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="/css/output.css" rel="stylesheet" />
+    <title>Data on the Downs - Customer Details</title>
+</head>
+<body class="min-h-screen bg-gray-100 flex">
+  
+  <div class="bg-gray-800 text-white w- space-y-6 py-7 px-2">
+    <!-- Sidebar content -->
+    {{template "sidebar.html"}}
+</div>
+     
+    <div class="flex-grow p-4 max-w-7xl mx-auto mt-16">
+        <h1 class="text-2xl font-semibold mb-4">
+            Customer Details
+        </h1>
+        {{if .Id}}
+        <div class="bg-gray-100 p-6 rounded-lg shadow-md "> <!-- Slightly lighter bg for contrast, added shadow and rounding -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <h2 class="text-xl font-semibold mb-2">
+                        Personal Information
+                    </h2>
+                    <p><strong>Title:</strong> Mr</p> 
+                    <p><strong>Name:</strong> {{.FirstName}}</p>
+                    <p><strong>Email:</strong> {{.Email}}</p>
+                    <p><strong>Phone:</strong> {{.Phone}}</p>
+                    
+                  </div>
+                  <div>
+                    <h2 class="text-xl font-semibold mb-2">
+                      Company Information
+                    </h2>
+                    <p><strong>Company:</strong> {{.CompanyName}}</p>
+                    <p><strong>Industry:</strong> Technology</p>
+                    <p>
+                        <strong>Website:</strong>
+                        <a href="" class="text-blue-400 hover:text-blue-300">Visit Website</a> 
+                    </p>
+                </div>
+            </div>
+            <div class="mt-4">
+                <h2 class="text-xl font-semibold mb-2">Notes</h2>
+                <ul class="list-disc list-inside space-y-2">
+                    
+                    <li>This is a test note</li> <!-- Example note, assuming it's part of the data -->
+                    <!-- Additional notes -->
+                </ul>
+            </div>
         </div>
-        <div class="mt-4">
-          <h2 class="text-xl font-semibold text-gray-700 mb-2">Notes</h2>
-          <ul class="list-disc list-inside">
-            <li class="text-gray-600">Note 1 about the customer...</li>
-            <li class="text-gray-600">Note 2 about the customer...</li>
-            <!-- More notes... -->
-          </ul>
-        </div>
-      </div>
-      {{end}}
+        {{end}}
     </div>
     <script src="https://unpkg.com/htmx.org"></script>
-  </body>
+</body>
 </html>
