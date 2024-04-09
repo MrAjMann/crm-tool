@@ -84,15 +84,20 @@ func main() {
 	http.HandleFunc("/leads", leadHandler.GetAllLeads) // Leads page
 	http.HandleFunc("/lead/", leadHandler.GetLead)     // Handle getting a lead
 	http.HandleFunc("/add-lead/", leadHandler.AddLead) // Handle adding a lead
-	http.HandleFunc("src/templates/modals/create-lead-modal", func(w http.ResponseWriter, r *http.Request) {
-		err := sideBarTmpl.ExecuteTemplate(w, "createLeadModal.html", nil)
-		if err != nil {
-			http.Error(w, "Error loading modal", http.StatusInternalServerError)
-			log.Printf("Error loading modal: %v\n", err)
-		}
-		log.Printf("Modal loaded")
 
+	http.HandleFunc("/create-lead-modal", func(w http.ResponseWriter, r *http.Request) {
+		modalPath := "src/templates/modals/createLeadModal.html"
+		http.ServeFile(w, r, modalPath)
 	})
 
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	http.HandleFunc("/create-customer-modal", func(w http.ResponseWriter, r *http.Request) {
+		modalPath := "src/templates/modals/createCustomerModal.html"
+		http.ServeFile(w, r, modalPath)
+	})
+
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080" // Default port if not specified
+	}
+	log.Fatal(http.ListenAndServe(":"+port, nil))
 }
