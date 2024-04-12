@@ -54,7 +54,7 @@ func CreateTables() {
 
 	_, err = db.Exec(createLeadsTableSQL)
 	if err != nil {
-		log.Fatal("Error creating leads table: ", err)
+		log.Fatalf("Error creating invoices table: %v", err)
 	}
 	// Create customers table if it doesn't exist
 	createCustomersTableSQL := `
@@ -79,6 +79,32 @@ func CreateTables() {
 
 	_, err = db.Exec(createCustomersTableSQL)
 	if err != nil {
-		log.Fatal("Error creating customers table: ", err)
+		log.Fatalf("Error creating invoices table: %v", err)
 	}
+
+	// Create customers table if it doesn't exist
+	createInvoicesTableSQL := `
+		DO $$
+		BEGIN
+			IF NOT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'invoices') THEN
+				CREATE TABLE invoices (
+					InvoiceId SERIAL PRIMARY KEY,
+					InvoiceNumber   TEXT 
+					InvoiceDate     DATE
+					DueDate         DATE
+					CustomerId      TEXT
+					CustomerName    TEXT
+					CompanyName     TEXT
+					CustomerPhone   TEXT
+					CustomerEmail   TEXT
+				);
+			END IF;
+		END
+		$$;`
+
+	_, err = db.Exec(createInvoicesTableSQL)
+	if err != nil {
+		log.Fatalf("Error creating invoices table: %v", err)
+	}
+
 }

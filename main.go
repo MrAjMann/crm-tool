@@ -58,10 +58,19 @@ func main() {
 	}
 
 	leadRepo := repository.NewLeadRepository(db)
+	if leadRepo == nil {
+		println("Creating customers table")
+	}
+
+	invoiceRepo := repository.NewInvoiceRepository(db)
+	if invoiceRepo == nil {
+		println("Creating customers table")
+	}
 
 	dashboardHandler := handler.NewDashboardHandler(sideBarTmpl)
 	customerHandler := handler.NewCustomerHandler(customerRepo, sideBarTmpl)
 	leadHandler := handler.NewLeadHandler(leadRepo, sideBarTmpl)
+	invoiceHandler := handler.NewInvoiceHandler(invoiceRepo, sideBarTmpl)
 
 	// Setup routes
 	// Handlers
@@ -84,6 +93,9 @@ func main() {
 	http.HandleFunc("/leads", leadHandler.GetAllLeads) // Leads page
 	http.HandleFunc("/lead/", leadHandler.GetLead)     // Handle getting a lead
 	http.HandleFunc("/add-lead/", leadHandler.AddLead) // Handle adding a lead
+
+	//Invoice Routes
+	http.HandleFunc("/invoices", invoiceHandler.GetAllInvoices)
 
 	http.HandleFunc("/create-lead-modal", func(w http.ResponseWriter, r *http.Request) {
 		modalPath := "src/templates/modals/createLeadModal.html"

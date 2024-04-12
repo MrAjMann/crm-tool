@@ -13,3 +13,11 @@ type Customer struct {
 	CreatedAt   time.Time
 	UpdatedAtAt time.Time
 }
+
+type Address struct {
+	UnitNumber   string
+	StreetNumber string
+	StreetName   string
+	City         string
+	Postcode     string
+}
