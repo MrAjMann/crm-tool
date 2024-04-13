@@ -2,6 +2,7 @@ package repository
 
 import (
 	"database/sql"
+	"fmt"
 
 	"github.com/MrAjMann/crm/internal/model"
 )
@@ -36,9 +37,22 @@ func (repo *InvoiceRepository) GetAllInvoices() ([]model.Invoice, error) {
 
 func (repo *InvoiceRepository) AddNewInvoice(invoice model.Invoice) (string, error) {
 	var invoiceId string
-	err := repo.db.QueryRow("INSERT INTO invoices ( InvoiceNumber, InvoiceDate, DueDate, CustomerId, CustomerName, CompanyName, CustomerPhone, CustomerEmail, PaymentStatus ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING InvoiceId").Scan(&invoiceId)
+	// The query must include actual parameters from the 'invoice' object
+	err := repo.db.QueryRow(
+		"INSERT INTO invoices (InvoiceNumber, InvoiceDate, DueDate, CustomerId, CustomerName, CompanyName, CustomerPhone, CustomerEmail, PaymentStatus) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING InvoiceId",
+		invoice.InvoiceNumber, // $1
+		invoice.InvoiceDate,   // $2
+		invoice.DueDate,       // $3
+		invoice.CustomerId,    // $4 Assume there's a CustomerId field in your model
+		invoice.CustomerName,  // $5
+		invoice.CompanyName,   // $6
+		invoice.CustomerPhone, // $7
+		invoice.CustomerEmail, // $8
+		invoice.PaymentStatus, // $9
+	).Scan(&invoiceId)
+
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("error returning InvoiceId: %v", err)
 	}
 	return invoiceId, nil
 }

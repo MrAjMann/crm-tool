@@ -16,6 +16,10 @@ type InvoiceHandler struct {
 	tmpl *template.Template
 }
 
+type InvoiceData struct {
+	Invoices []model.Invoice
+}
+
 func NewInvoiceHandler(repo *repository.InvoiceRepository, tmpl *template.Template) *InvoiceHandler {
 	return &InvoiceHandler{repo: repo, tmpl: tmpl}
 }
@@ -24,9 +28,14 @@ func (h *InvoiceHandler) GetAllInvoices(w http.ResponseWriter, r *http.Request) 
 	invoices, err := h.repo.GetAllInvoices()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
-	err = h.tmpl.ExecuteTemplate(w, "invoices.html", invoices)
+	data := InvoiceData{
+		Invoices: invoices,
+	}
+
+	err = h.tmpl.ExecuteTemplate(w, "invoices.html", data)
 	if err != nil {
 		log.Println("Error executing template:", err)
 		http.Error(w, "Error executing template", http.StatusInternalServerError)
@@ -48,7 +57,6 @@ func (h *InvoiceHandler) AddNewInvoice(w http.ResponseWriter, r *http.Request) {
 	}
 
 	paymentStatusStr := r.FormValue("paymentStatus")
-
 	paymentStatusInt, err := strconv.Atoi(paymentStatusStr)
 	if err != nil {
 		http.Error(w, "Invalid payment status", http.StatusBadRequest)
@@ -80,14 +88,22 @@ func (h *InvoiceHandler) AddNewInvoice(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tmpl, err := template.ParseFiles("src/templates/invoices.html")
-	if err != nil {
-		http.Error(w, "Error loading template", http.StatusInternalServerError)
-		log.Printf("Error loading template: %v\n", err)
-		return
+	// Corrected to use the structure InvoiceData with a slice of Invoices
+	data := InvoiceData{
+		Invoices: []model.Invoice{
+			{
+				InvoiceId:     invoiceId, // Now including InvoiceId
+				InvoiceNumber: invoice.InvoiceNumber,
+				DueDate:       invoice.DueDate,
+				CustomerEmail: invoice.CustomerEmail,
+				CompanyName:   invoice.CompanyName,
+				CustomerPhone: invoice.CustomerPhone,
+				PaymentStatus: invoice.PaymentStatus,
+			},
+		},
 	}
 
-	err = tmpl.ExecuteTemplate(w, "invoice-list-element", model.Invoice{InvoiceId: invoiceId, DueDate: invoice.DueDate, CustomerEmail: invoice.CustomerEmail, CompanyName: invoice.CompanyName, CustomerPhone: invoice.CustomerPhone, PaymentStatus: invoice.PaymentStatus})
+	err = h.tmpl.ExecuteTemplate(w, "invoice-list-element", data)
 	if err != nil {
 		http.Error(w, "Error executing template", http.StatusInternalServerError)
 		log.Printf("Error executing template: %v\n", err)

@@ -30,6 +30,7 @@ type ItemList struct {
 	Tax       int32
 	Total     int32
 }
+
 type PaymentStatus int
 
 // This code will be used for the business logic, however i want to keep track roughly of my intention before I get to that point

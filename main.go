@@ -103,7 +103,7 @@ func main() {
 
 	//Invoice Routes
 	http.HandleFunc("/invoices", invoiceHandler.GetAllInvoices)
-	http.HandleFunc("/add-invoice", invoiceHandler.AddNewInvoice)
+	http.HandleFunc("/add-invoice/", invoiceHandler.AddNewInvoice)
 
 	http.HandleFunc("/create-lead-modal", func(w http.ResponseWriter, r *http.Request) {
 		modalPath := "src/templates/modals/createLeadModal.html"
