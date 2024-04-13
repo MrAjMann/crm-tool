@@ -8,6 +8,8 @@ type Customer struct {
 	Email       string
 	CompanyName string
 	Phone       string
+	Address     Address
+	Invoices    []Invoice
 	Lead        []Lead
 	Notes       []Note
 	CreatedAt   time.Time

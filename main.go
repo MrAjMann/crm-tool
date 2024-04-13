@@ -31,6 +31,13 @@ func main() {
 
 	// Connect to the database
 	db, err := sql.Open("postgres", databaseURL)
+
+	// Initialize database tables
+	err = CreateTables(db)
+	if err != nil {
+		log.Fatalf("Failed to initialize database tables: %v", err)
+	}
+
 	if err != nil {
 		log.Fatal("Error connecting to the database: ", err)
 	}
@@ -96,6 +103,7 @@ func main() {
 
 	//Invoice Routes
 	http.HandleFunc("/invoices", invoiceHandler.GetAllInvoices)
+	http.HandleFunc("/add-invoice", invoiceHandler.AddNewInvoice)
 
 	http.HandleFunc("/create-lead-modal", func(w http.ResponseWriter, r *http.Request) {
 		modalPath := "src/templates/modals/createLeadModal.html"
@@ -104,6 +112,11 @@ func main() {
 
 	http.HandleFunc("/create-customer-modal", func(w http.ResponseWriter, r *http.Request) {
 		modalPath := "src/templates/modals/createCustomerModal.html"
+		http.ServeFile(w, r, modalPath)
+	})
+
+	http.HandleFunc("/create-invoice-modal", func(w http.ResponseWriter, r *http.Request) {
+		modalPath := "src/templates/modals/createInvoiceModal.html"
 		http.ServeFile(w, r, modalPath)
 	})
 

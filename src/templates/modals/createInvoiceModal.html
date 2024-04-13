@@ -1,0 +1,108 @@
+<div
+	class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full"
+	id="modal-overlay"
+>
+	<!-- Modal -->
+	<div
+		class="relative top-10 mx-auto p-5 border w-full max-w-lg shadow-lg rounded-md bg-white"
+		style="margin-top: 5%"
+	>
+		<div class="text-center">
+			<h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
+				Add New Invoice
+			</h3>
+			<!-- Form -->
+			<form
+				id="newInvoiceForm"
+				class="space-y-4"
+				hx-post="/add-invoice/"
+				hx-swap="beforeend"
+			>
+				<!-- Input Fields -->
+				<input
+					type="text"
+					name="InvoiceNumber"
+					id="invoice-InvoiceNumber"
+					class="w-full px-3 py-2 border rounded"
+					placeholder="Invoice Number"
+				/>
+				<input
+					type="date"
+					name="InvoiceDate"
+					id="invoice-InvoiceDate"
+					class="w-full px-3 py-2 border rounded"
+					placeholder="Invoice Date"
+				/>
+				<input
+					type="date"
+					name="DueDate"
+					id="invoice-DueDate"
+					class="w-full px-3 py-2 border rounded"
+					placeholder="Due Date"
+				/>
+				<input
+					type="text"
+					name="CustomerName"
+					id="invoice-CustomerName"
+					class="w-full px-3 py-2 border rounded"
+					placeholder="Customer Name"
+				/>
+				<input
+					type="text"
+					name="CompanyName"
+					id="invoice-CompanyName"
+					class="w-full px-3 py-2 border rounded"
+					placeholder="Company Name"
+				/>
+				<input
+					type="text"
+					name="CustomerPhone"
+					id="invoice-CustomerPhone"
+					class="w-full px-3 py-2 border rounded"
+					placeholder="Customer Phone"
+				/>
+				<input
+					type="email"
+					name="CustomerEmail"
+					id="invoice-CustomerEmail"
+					class="w-full px-3 py-2 border rounded"
+					placeholder="Customer Email"
+				/>
+				<input
+					type="text"
+					name="PaymentStatus"
+					id="invoice-PaymentStatus"
+					class="w-full px-3 py-2 border rounded"
+					placeholder="Payment Status"
+				/>
+
+				<!-- Additional fields related to item list would need a dynamic approach, possibly JavaScript or server-side handling -->
+
+				<!-- Submit and Close Buttons -->
+				<div class="space-y-4">
+					<button
+						type="submit"
+						class="inline-flex items-center py-2 px-4 bg-blue-500 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 active:bg-blue-700 focus:outline-none focus:border-blue-700 focus:ring focus:ring-blue-200 disabled:opacity-25 transition"
+					>
+						Submit
+					</button>
+					<button
+						onclick="closeModal()"
+						class="inline-flex items-center py-2 px-4 bg-red-500 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-red-700 active:bg-red-700 focus:outline-none focus:border-red-700 focus:ring focus:ring-red-200 disabled:opacity-25 transition"
+					>
+						Close
+					</button>
+				</div>
+			</form>
+		</div>
+	</div>
+</div>
+
+<script>
+	function closeModal() {
+		var modalOverlay = document.getElementById("modal-overlay");
+		if (modalOverlay) {
+			modalOverlay.remove(); // Remove the modal content
+		}
+	}
+</script>

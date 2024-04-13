@@ -22,6 +22,7 @@ type Invoice struct {
 }
 
 type ItemList struct {
+	InvoiceId string
 	Item      string
 	Quantity  int32
 	UnitPrice int32
@@ -29,7 +30,6 @@ type ItemList struct {
 	Tax       int32
 	Total     int32
 }
-
 type PaymentStatus int
 
 // This code will be used for the business logic, however i want to keep track roughly of my intention before I get to that point
@@ -39,11 +39,11 @@ type PaymentStatus int
 //     "model"  - Just import the model folder
 // )
 
-// const (
-//     Paid model.PaymentStatus = iota // 0
-//     Pending                         // 1
-//     Overdue                         // 2
-// )
+const (
+	Paid    PaymentStatus = iota // 0
+	Pending                      // 1
+	Overdue                      // 2
+)
 
 // func main() {
 //     fmt.Println(model.Paid)    // Output: 0
