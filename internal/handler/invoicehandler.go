@@ -72,13 +72,11 @@ func (h *InvoiceHandler) AddNewInvoice(w http.ResponseWriter, r *http.Request) {
 	}
 
 	invoice := model.Invoice{
-		InvoiceNumber: r.FormValue("invoiceNumber"),
 		CustomerName:  r.FormValue("customerName"),
-		DueDate:       time.Now(),
+		DueDate:       time.Now().AddDate(0, 0, 30),
 		CustomerEmail: r.FormValue("email"),
 		CompanyName:   r.FormValue("companyName"),
 		CustomerPhone: r.FormValue("phone"),
-		PaymentStatus: model.PaymentStatus(paymentStatusInt),
 	}
 
 	invoiceId, err := h.repo.AddNewInvoice(invoice)
@@ -94,6 +92,7 @@ func (h *InvoiceHandler) AddNewInvoice(w http.ResponseWriter, r *http.Request) {
 			{
 				InvoiceId:     invoiceId, // Now including InvoiceId
 				InvoiceNumber: invoice.InvoiceNumber,
+				InvoiceDate:   invoice.InvoiceDate,
 				DueDate:       invoice.DueDate,
 				CustomerEmail: invoice.CustomerEmail,
 				CompanyName:   invoice.CompanyName,
@@ -108,5 +107,4 @@ func (h *InvoiceHandler) AddNewInvoice(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Error executing template", http.StatusInternalServerError)
 		log.Printf("Error executing template: %v\n", err)
 	}
-
 }

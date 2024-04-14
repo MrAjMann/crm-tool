@@ -46,37 +46,51 @@
         <div id="customer-table" class="shadow-md rounded-lg p-4">
             <table class="min-w-full leading-normal">
                 <thead>
-                <tr class="text-left text-sm font-semibold  tracking-wider border-b border-gray-200"> <!-- Light borders for separation -->
-                    <th class="px-5 py-3">Customer Id</th>
-                    <th class="px-5 py-3">Name</th>
-                    <th class="px-5 py-3">Email</th>
-                    <th class="px-5 py-3">Company</th>
-                    <th class="px-5 py-3">Phone</th>
-                    <th class="px-5 py-3">Actions</th>
-                </tr>
+                    <tr class="text-left text-sm font-semibold tracking-wider border-b border-gray-200">
+                        <th class="px-5 py-3">Customer Id</th>
+                        <th class="px-5 py-3">Name</th>
+                        <th class="px-5 py-3">Email</th>
+                        <th class="px-5 py-3">Company</th>
+                        <th class="px-5 py-3">Phone</th>
+                        <th class="px-5 py-3">Website</th>
+                        <th class="px-5 py-3">Actions</th>
+                    </tr>
                 </thead>
-                <tbody>
-                {{ range . }}
-                <tr class="bg-gray-100 border-b hover:bg-blue-500"> 
-                    <td class="px-5 py-5">{{ .Id }}</td>
-                    <td class="px-5 py-5">{{ .FirstName }}</td>
-                    <td class="px-5 py-5">{{ .Email }}</td>
-                    <td class="px-5 py-5">{{ .CompanyName }}</td>
-                    <td class="px-5 py-5">{{ .Phone }}</td>
-                    <td class="px-5 py-5">
-                        <a href="/customer/{{ .Id }}" class="text-gray-800 hover:text-gray-100 transition duration-150 ease-in-out">View</a> | 
-                        <a href="/customer/edit/{{ .Id }}" class="text-gray-800 hover:text-gray-100 transition duration-150 ease-in-out">Edit</a> | 
-                        <a href="/customer/delete/{{ .Id }}" hx-delete="/customer/delete/{{ .Id }}"
-                        hx-confirm="Are you sure you want to delete this customer?"
-                        class="text-gray-800 hover:text-gray-100 transition duration-150 ease-in-out">Delete</a>
-                        
-                    </td>
-                </tr>
-                {{else}}
-                <tr>
-                    <td colspan="6" class="text-center py-4">No customers found.</td>
-                </tr>
-                {{ end }}
+                <tbody id="customer-list">
+                    {{ range . }}
+                        {{ template "customer-list-element" . }}
+                    {{ else }}
+                    <tr>
+                        <td colspan="6" class="text-center py-4">No customers found.</td>
+                    </tr>
+                    {{ end }}
+                </tbody>
+            </table>
+        </div>
+    
+        {{ define "customer-list-element" }}
+        <tr class="bg-gray-100 border-b hover:bg-blue-500">
+            <td class="px-5 py-5">{{ .Id }}</td>
+            <td class="px-5 py-5">{{ .FirstName }} {{ .LastName }}</td>
+            <td class="px-5 py-5">{{ .Email }}</td>
+            <td class="px-5 py-5">{{ .Phone }}</td>
+            <td class="px-5 py-5">{{ .CompanyName }}</td>
+            <td class="px-5 py-5">{{ .Website }}</td>
+            <td class="px-5 py-5">
+                <a href="/customer/{{ .Id }}" class="text-gray-800 hover:text-gray-100 transition duration-150 ease-in-out">View</a> | 
+                <a href="/customer/edit/{{ .Id }}" class="text-gray-800 hover:text-gray-100 transition duration-150 ease-in-out">Edit</a> | 
+                <a href="javascript:void(0);" 
+                    hx-delete="/customer/delete/{{ .Id }}" 
+                    hx-target="#customer-table"
+                    hx-trigger="click"
+                    hx-method="DELETE"
+                    hx-confirm="Are you sure you want to delete this customer?"
+                    class="text-gray-800 hover:text-gray-100 transition duration-150 ease-in-out">Delete</a>
+
+            </td>
+        </tr>
+        {{ end }}
+               
                 </tbody>
             </table>
             

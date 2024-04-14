@@ -1,9 +1,11 @@
 package handler
 
 import (
+	"fmt"
 	"html/template"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/MrAjMann/crm/internal/model"
@@ -35,7 +37,6 @@ func (h *CustomerHandler) GetAllCustomers(w http.ResponseWriter, r *http.Request
 }
 
 // Add a Customer
-
 func (h *CustomerHandler) AddCustomer(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
 		log.Printf("Method not allowed: %v\n", r.Method)
@@ -52,9 +53,13 @@ func (h *CustomerHandler) AddCustomer(w http.ResponseWriter, r *http.Request) {
 
 	customer := model.Customer{
 		FirstName:   r.FormValue("firstName"),
+		LastName:    r.FormValue("lastName"),
 		Email:       r.FormValue("email"),
 		CompanyName: r.FormValue("companyName"),
 		Phone:       r.FormValue("phone"),
+		Title:       r.FormValue("title"),
+		Website:     r.FormValue("website"),
+		Industry:    r.FormValue("industry"),
 	}
 
 	customerId, err := h.repo.AddCustomer(customer)
@@ -62,6 +67,10 @@ func (h *CustomerHandler) AddCustomer(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Database error on inserting new customer", http.StatusInternalServerError)
 		log.Printf("Database error on inserting new customer: %v\n", err)
 		return
+	}
+	customerIdInt, err := strconv.Atoi(customerId)
+	if err != nil {
+		log.Fatalf("Error converting customerId to int: %v", err)
 	}
 
 	tmpl, err := template.ParseFiles("src/templates/customers.html")
@@ -72,7 +81,7 @@ func (h *CustomerHandler) AddCustomer(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Assuming you want to redirect or display a success message
-	err = tmpl.ExecuteTemplate(w, "customer-list-element", model.Customer{Id: customerId, FirstName: customer.FirstName, Email: customer.Email, CompanyName: customer.CompanyName, Phone: customer.Phone})
+	err = tmpl.ExecuteTemplate(w, "customer-list-element", model.Customer{Id: customerIdInt, FirstName: customer.FirstName, LastName: customer.LastName, Email: customer.Email, CompanyName: customer.CompanyName, Phone: customer.Phone})
 	if err != nil {
 		http.Error(w, "Error executing template", http.StatusInternalServerError)
 		log.Printf("Error executing template: %v\n", err)
@@ -108,18 +117,73 @@ func (h *CustomerHandler) GetCustomer(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Error executing template", http.StatusInternalServerError)
 		log.Printf("Error executing template: %v\n", err)
 	}
+}
 
-	// err = tmpl.ExecuteTemplate(w, "customer.html", customer)
-	// log.Println(customer)
-	// if err != nil {
-	// 	http.Error(w, "Error executing template", http.StatusInternalServerError)
-	// 	log.Printf("Error executing template: %v\n", err)
-	// }
 
-	// Call the repository function to get the customer
-	// Execute the template with the customer data
+
+// Search for a customer
+func (h *CustomerHandler) HandleSearchCustomers(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "GET" {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	query := r.URL.Query().Get("search")
+	log.Printf("Received search query: '%s'", query) // This logs the received query
+
+	if query == "" {
+		http.Error(w, "Query parameter 'search' is missing or empty", http.StatusBadRequest)
+		return
+	}
+	customers, err := h.repo.SearchCustomers(query) // Assuming Query method accepts a search string
+	if err != nil {
+		http.Error(w, "Database error on fetching customers", http.StatusInternalServerError)
+		log.Printf("Database error on fetching customers: %v\n", err)
+		return
+	}
+
+	w.Header().Set("Content-Type", "text/html")
+	var htmlOutput string
+	htmlOutput += "<ul class='customer-list'>"
+	for _, customer := range customers {
+		htmlOutput += fmt.Sprintf("<li>%s %s- %s, %s (%s)</li>", customer.FirstName, customer.LastName, customer.Email, customer.Phone, customer.CompanyName)
+	}
+	htmlOutput += "</ul>"
+
+	w.Write([]byte(htmlOutput))
 }
 
 // Update a Customer
 
 // Delete a Customer
+
+func (h *CustomerHandler) DeleteCustomer(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "DELETE" {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// Parsing the customer ID from the URL path
+	parts := strings.Split(r.URL.Path, "/")
+	if len(parts) < 4 {
+		http.Error(w, "Invalid customer ID", http.StatusBadRequest)
+		return
+	}
+	idStr := parts[3] // Assuming URL is formatted as /customer/delete/{id}
+
+	if idStr == "" {
+		http.Error(w, "Invalid customer ID", http.StatusBadRequest)
+		return
+	}
+	// Get the customer by id from the repository
+	deletedCustomer, err := h.repo.DeleteCustomerById(idStr)
+	if err != nil {
+		http.Error(w, "Database error on fetching customer", http.StatusInternalServerError)
+		log.Printf("Database error on fetching customer: %v\n", err)
+		return
+	}
+	log.Printf("Deleted customer: %+v", deletedCustomer)
+	// Assuming tmpl is a template instance parsed at application initialization
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintf(w, "Customer deleted successfully: %d - %s %s", deletedCustomer.Id, deletedCustomer.FirstName, deletedCustomer.LastName)
+}

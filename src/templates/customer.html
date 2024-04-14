@@ -25,21 +25,23 @@
                     <h2 class="text-xl font-semibold mb-2">
                         Personal Information
                     </h2>
-                    <p><strong>Title:</strong> Mr</p> 
-                    <p><strong>Name:</strong> {{.FirstName}}</p>
+                    <p><strong>Name:</strong> {{.FirstName}} {{.LastName}}</p>
                     <p><strong>Email:</strong> {{.Email}}</p>
                     <p><strong>Phone:</strong> {{.Phone}}</p>
                     
-                  </div>
-                  <div>
+                    
+                    
+                </div>
+                <div>
                     <h2 class="text-xl font-semibold mb-2">
-                      Company Information
+                        Company Information
                     </h2>
+                    <p><strong>Title:</strong> {{.Title}}</p> 
                     <p><strong>Company:</strong> {{.CompanyName}}</p>
-                    <p><strong>Industry:</strong> Technology</p>
+                    <p><strong>Industry:</strong> {{.Industry}}</p>
                     <p>
                         <strong>Website:</strong>
-                        <a href="" class="text-blue-400 hover:text-blue-300">Visit Website</a> 
+                        <a href="{{.Website}}" class="text-blue-400 hover:text-blue-300">{{.Website}}</a>
                     </p>
                 </div>
             </div>

@@ -33,6 +33,14 @@ type ItemList struct {
 
 type PaymentStatus int
 
+
+
+const (
+	Paid    PaymentStatus = iota // 0
+	Pending                      // 1
+	Overdue                      // 2
+)
+
 // This code will be used for the business logic, however i want to keep track roughly of my intention before I get to that point
 
 // import (
@@ -40,11 +48,6 @@ type PaymentStatus int
 //     "model"  - Just import the model folder
 // )
 
-const (
-	Paid    PaymentStatus = iota // 0
-	Pending                      // 1
-	Overdue                      // 2
-)
 
 // func main() {
 //     fmt.Println(model.Paid)    // Output: 0

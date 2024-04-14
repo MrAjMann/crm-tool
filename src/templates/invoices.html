@@ -38,8 +38,9 @@
         <!-- Search Form -->
         <div class="mb-4">
             <input type="text" hx-get="/search-invoices" hx-trigger="keyup delayed:500ms" hx-target="#invoice-table"
-                   class="text-gray-800 border  w-full border-gray-200 outline-gray-400 shadow-md rounded-lg p-4 " placeholder="Search invoices..."
-                   style="background-color: #f3f4f6; "> <!-- Dark input for subtle contrast -->
+                   class="text-gray-800 border w-full border-gray-200 outline-gray-400 shadow-md rounded-lg p-4" placeholder="Search invoices..."
+                   style="background-color: #f3f4f6;"
+                   hx-vals='{"error": "true"}'> <!-- Added hx-vals for error demonstration -->
         </div>
 
        <!-- Invoice Table -->
@@ -50,7 +51,7 @@
                 <th class="px-5 py-3">InvoiceId</th>
                 <th class="px-5 py-3">Invoice Number</th>
                 <th class="px-5 py-3">Date</th>
-                <th class="px-5 py-3">Due Date</th>
+                <th class="px-5 py-3">DueDate</th>
                 <th class="px-5 py-3">Customer Name</th>
                 <th class="px-5 py-3">Company Name</th>
                 <th class="px-5 py-3">Phone</th>
@@ -88,9 +89,21 @@
     </table>
 </div>
 
-    </div>
+</div>
     <script src="https://unpkg.com/htmx.org"></script>
+    <script>        
+        document.addEventListener("htmx:afterSwap", function(event) {
+            if (document.getElementById("invoice-DueDate")) {
+                var dueDateInput = document.getElementById("invoice-DueDate");
+                var date = new Date();
+                date.setDate(date.getDate() + 30); // Set default to 30 days ahead
+                dueDateInput.value = date.toISOString().split('T')[0];
+            }
+            });
+    </script>
     <script>
+
+
         function closeModal() {
             var modalContainer = document.getElementById("modal-container");
             if (modalContainer) {
@@ -114,6 +127,7 @@
             }
         });
     </script>
+   
 </body>
 </html>
 

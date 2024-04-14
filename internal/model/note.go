@@ -15,11 +15,12 @@ const (
 )
 
 type Note struct {
-	NoteId     string
-	LeadId     string
+	NoteId     int
+	CustomerId *int
+	LeadId     *int
 	Category   NoteCategory
-	AuthorId   string
-	AuthorName string
+	AuthorId   int    // this will be implemented after the main func of crm is done and user auth is added
+	AuthorName string // this will be implemented after the main func of crm is done and user auth is added
 	Content    string
 	CreatedAt  time.Time
 	UpdatedAt  time.Time

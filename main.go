@@ -31,11 +31,14 @@ func main() {
 
 	// Connect to the database
 	db, err := sql.Open("postgres", databaseURL)
+	if err != nil {
+		log.Fatalf("Failed to initialize database tables: %v", err)
+	}
 
 	// Initialize database tables
 	err = CreateTables(db)
 	if err != nil {
-		log.Fatalf("Failed to initialize database tables: %v", err)
+		log.Fatalf("Failed to create database tables: %v", err)
 	}
 
 	if err != nil {
@@ -92,15 +95,16 @@ func main() {
 	http.HandleFunc("/", dashboardHandler.Dashboard)
 
 	// Customer Routes
-	http.HandleFunc("/customers", customerHandler.GetAllCustomers) // Customers page
-	http.HandleFunc("/customer/", customerHandler.GetCustomer)     // Handle getting a customer
-	http.HandleFunc("/add-customer/", customerHandler.AddCustomer) // Handle adding a customer
+	http.HandleFunc("/customers", customerHandler.GetAllCustomers)              // Customers page
+	http.HandleFunc("/customer/", customerHandler.GetCustomer)                  // Handle getting a customer
+	http.HandleFunc("/add-customer/", customerHandler.AddCustomer)              // Handle adding a customer
+	http.HandleFunc("/search-customers", customerHandler.HandleSearchCustomers) // Handle searching for a customer
+	http.HandleFunc("/customer/delete/", customerHandler.DeleteCustomer)        // Handle searching for a customer
 
 	// Lead Routes
 	http.HandleFunc("/leads", leadHandler.GetAllLeads) // Leads page
 	http.HandleFunc("/lead/", leadHandler.GetLead)     // Handle getting a lead
 	http.HandleFunc("/add-lead/", leadHandler.AddLead) // Handle adding a lead
-
 	//Invoice Routes
 	http.HandleFunc("/invoices", invoiceHandler.GetAllInvoices)
 	http.HandleFunc("/add-invoice/", invoiceHandler.AddNewInvoice)
@@ -118,6 +122,7 @@ func main() {
 	http.HandleFunc("/create-invoice-modal", func(w http.ResponseWriter, r *http.Request) {
 		modalPath := "src/templates/modals/createInvoiceModal.html"
 		http.ServeFile(w, r, modalPath)
+
 	})
 
 	port := os.Getenv("PORT")

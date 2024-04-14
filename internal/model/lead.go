@@ -4,27 +4,15 @@ import (
 	"time"
 )
 
-type Status string
-type ClosedStatus string
-
-const (
-	NewLead       Status = "New Lead"
-	Contacted     Status = "Contacted"
-	Engaged       Status = "Engaged"
-	Qualified     Status = "Qualified"
-	NeedsAnalysis Status = "Needs Analysis"
-	ProposalSent  Status = "Proposal Sent"
-	Negotiation   Status = "Negotiation"
-	Closed        Status = "Closed"
-)
-
-const (
-	Won  ClosedStatus = "Won"
-	Lost ClosedStatus = "Lost"
-)
+type Status struct {
+	StatusId          int    // Unique identifier for the status
+	StatusValue       string // Descriptive name of the status
+	IsClosed          bool   // Indicates if the status is a closed state
+	ClosedStatusValue string // Specific closed status description, if applicable
+}
 
 type Lead struct {
-	LeadId      string
+	LeadId      int
 	FirstName   string
 	LastName    string
 	Email       string
@@ -34,8 +22,9 @@ type Lead struct {
 	Title       string
 	Website     string
 	Industry    string
+	ServiceType string
 	Source      string
 	Notes       []Note
 	CreatedAt   time.Time
-	UpdatedAtAt time.Time
+	UpdatedAt   time.Time
 }

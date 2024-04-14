@@ -13,32 +13,37 @@
 			</h3>
 			<!-- Form -->
 			<form
-				id="newInvoiceForm"
+				id="invoiceForm"
 				class="space-y-4"
 				hx-post="/add-invoice/"
 				hx-swap="beforeend"
 			>
+
+
+			<div class="space-y-4">
+				<label for="customerSearch">Customer:</label>
+				<input type="text" id="customerSearch" class="w-full px-3 py-2 border rounded"
+    placeholder="Start typing to search for a customer..." 
+    hx-get="/search-customers"
+    hx-trigger="keyup changed delay:500ms" 
+    hx-target="#customerSearchResults" 
+    hx-swap="innerHTML"
+    hx-params="search"
+    name="search">
+				<div id="customerSearchResults"></div> <!-- Results populated by HTMX on input -->
+			</div>
+			<div id="newInvoiceForm">
+
+			
 				<!-- Input Fields -->
-				<input
-					type="text"
-					name="InvoiceNumber"
-					id="invoice-InvoiceNumber"
-					class="w-full px-3 py-2 border rounded"
-					placeholder="Invoice Number"
-				/>
-				<input
-					type="date"
-					name="InvoiceDate"
-					id="invoice-InvoiceDate"
-					class="w-full px-3 py-2 border rounded"
-					placeholder="Invoice Date"
-				/>
-				<input
+					<input
 					type="date"
 					name="DueDate"
 					id="invoice-DueDate"
 					class="w-full px-3 py-2 border rounded"
 					placeholder="Due Date"
+					value=""
+					
 				/>
 				<input
 					type="text"
@@ -68,16 +73,9 @@
 					class="w-full px-3 py-2 border rounded"
 					placeholder="Customer Email"
 				/>
-				<input
-					type="text"
-					name="PaymentStatus"
-					id="invoice-PaymentStatus"
-					class="w-full px-3 py-2 border rounded"
-					placeholder="Payment Status"
-				/>
-
-				<!-- Additional fields related to item list would need a dynamic approach, possibly JavaScript or server-side handling -->
-
+	
+			</div>
+			
 				<!-- Submit and Close Buttons -->
 				<div class="space-y-4">
 					<button
@@ -97,12 +95,6 @@
 		</div>
 	</div>
 </div>
-
-<script>
-	function closeModal() {
-		var modalOverlay = document.getElementById("modal-overlay");
-		if (modalOverlay) {
-			modalOverlay.remove(); // Remove the modal content
-		}
-	}
-</script>
+<script>document.getElementById('customerSearch').addEventListener('keyup', function() {
+    console.log(this.value);  // This should log the current input value on keyup
+});</script>
