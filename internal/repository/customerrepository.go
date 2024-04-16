@@ -75,11 +75,12 @@ func (repo *CustomerRepository) GetCustomerById(id string) (model.Customer, erro
 func (repo *CustomerRepository) SearchCustomers(query string) ([]model.Customer, error) {
 	var customers []model.Customer
 
-	// Use ILIKE for case-insensitive matching, and use CONCAT to match any part of these fields
-	sqlQuery := `SELECT Id, FirstName, LastName Email, Phone, CompanyName
+	// Adjust the SQL query to better handle searches for both first and last names together
+	sqlQuery := `SELECT Id, FirstName, LastName, Email, Phone, CompanyName
                  FROM customers
-                 WHERE FirstName ILIKE $1 OR LastName ILIKE $1 OR Email ILIKE $1 OR Phone ILIKE $1`
-	// Adding wildcards to the query term to match part of the fields
+                 WHERE CONCAT(FirstName, ' ', LastName) ILIKE $1 OR FirstName ILIKE $1 OR LastName ILIKE $1 OR Email ILIKE $1 OR Phone ILIKE $1 OR CompanyName ILIKE $1`
+	// This allows for a more flexible search that considers both individual and full names.
+
 	searchQuery := "%" + strings.TrimSpace(query) + "%"
 
 	rows, err := repo.db.Query(sqlQuery, searchQuery)
@@ -93,7 +94,6 @@ func (repo *CustomerRepository) SearchCustomers(query string) ([]model.Customer,
 		if err := rows.Scan(&customer.Id, &customer.FirstName, &customer.LastName, &customer.Email, &customer.Phone, &customer.CompanyName); err != nil {
 			return nil, fmt.Errorf("error scanning customer: %v", err)
 		}
-
 		customers = append(customers, customer)
 	}
 

@@ -119,8 +119,6 @@ func (h *CustomerHandler) GetCustomer(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-
-
 // Search for a customer
 func (h *CustomerHandler) HandleSearchCustomers(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
@@ -144,13 +142,50 @@ func (h *CustomerHandler) HandleSearchCustomers(w http.ResponseWriter, r *http.R
 
 	w.Header().Set("Content-Type", "text/html")
 	var htmlOutput string
-	htmlOutput += "<ul class='customer-list'>"
+
+	// Improved HTML output with added CSS for styling and JavaScript for click functionality
+	htmlOutput += `
+<style>
+    .customer-list { list-style-type: none; padding-left: 0; }
+    .customer-item { background: #f9f9f9; border: 1px solid #ddd; margin-top: 8px; padding: 8px 16px; border-radius: 4px; cursor: pointer; }
+    .customer-item:hover { background-color: #f0f0f0; }
+    .customer-info { margin: 0; }
+    .customer-info span { font-weight: bold; }
+</style>
+<ul class='customer-list'>`
 	for _, customer := range customers {
-		htmlOutput += fmt.Sprintf("<li>%s %s- %s, %s (%s)</li>", customer.FirstName, customer.LastName, customer.Email, customer.Phone, customer.CompanyName)
+		htmlOutput += fmt.Sprintf(`
+<li class='customer-item'>
+    <p class='customer-info'><span>Id:</span> %d </p>
+    <p class='customer-info'><span>Name:</span> %s %s</p>
+    <p class='customer-info'><span>Email:</span> %s</p>
+    <p class='customer-info'><span>Phone:</span> %s</p>
+    <p class='customer-info'><span>Company:</span> %s</p>
+</li>`, customer.Id, customer.FirstName, customer.LastName, customer.Email, customer.Phone, customer.CompanyName)
 	}
 	htmlOutput += "</ul>"
+	// Temp store, append to invoice data
+	htmlOutput += `
+	<script>
+		document.querySelectorAll('.customer-item').forEach(item => {
+			item.addEventListener('click', function() {
+				// Change the background color of only the clicked item
+				document.querySelectorAll('.customer-item').forEach(i => {
+					i.style.background = ''; // Reset background for all items
+				});
+				this.style.background = "#ff7f00"; 
+	
+				// Fetching the customer details correctly
+				var id = this.querySelector('.customer-info:nth-child(1)').innerText;
+				var name = this.querySelector('.customer-info:nth-child(2)').innerText;
+				var email = this.querySelector('.customer-info:nth-child(3)').innerText; 
+				console.log('Customer data selected: ' + id + ' - '+ name + ' - ' + email);
+			});
+		});
+	</script>`
 
 	w.Write([]byte(htmlOutput))
+
 }
 
 // Update a Customer
