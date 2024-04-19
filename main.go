@@ -105,9 +105,13 @@ func main() {
 	http.HandleFunc("/leads", leadHandler.GetAllLeads) // Leads page
 	http.HandleFunc("/lead/", leadHandler.GetLead)     // Handle getting a lead
 	http.HandleFunc("/add-lead/", leadHandler.AddLead) // Handle adding a lead
+
 	//Invoice Routes
 	http.HandleFunc("/invoices", invoiceHandler.GetAllInvoices)
 	http.HandleFunc("/add-invoice/", invoiceHandler.AddNewInvoice)
+
+	// Session Routes
+	http.HandleFunc("/customer-session", customerHandler.HandleSessionStore)
 
 	http.HandleFunc("/create-lead-modal", func(w http.ResponseWriter, r *http.Request) {
 		modalPath := "src/templates/modals/createLeadModal.html"

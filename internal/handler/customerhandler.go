@@ -10,6 +10,7 @@ import (
 
 	"github.com/MrAjMann/crm/internal/model"
 	"github.com/MrAjMann/crm/internal/repository"
+	"github.com/gorilla/sessions"
 )
 
 type CustomerHandler struct {
@@ -173,13 +174,25 @@ func (h *CustomerHandler) HandleSearchCustomers(w http.ResponseWriter, r *http.R
 				document.querySelectorAll('.customer-item').forEach(i => {
 					i.style.background = ''; // Reset background for all items
 				});
-				this.style.background = "#ff7f00"; 
+				this.style.background = "#ff7f00";
 	
 				// Fetching the customer details correctly
 				var id = this.querySelector('.customer-info:nth-child(1)').innerText;
 				var name = this.querySelector('.customer-info:nth-child(2)').innerText;
-				var email = this.querySelector('.customer-info:nth-child(3)').innerText; 
-				console.log('Customer data selected: ' + id + ' - '+ name + ' - ' + email);
+				var email = this.querySelector('.customer-info:nth-child(3)').innerText;
+	
+				// Sending data to server to store in session
+				fetch('./customer-session', {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/x-www-form-urlencoded',
+					},
+					body: 'id=' + encodeURIComponent(id) + '&name=' + encodeURIComponent(name) + '&email=' + encodeURIComponent(email)
+					
+				})
+				.then(response => response.text())
+				.then(data => console.log(data))
+				.catch(error => console.error('Error:', error));
 			});
 		});
 	</script>`
@@ -221,4 +234,36 @@ func (h *CustomerHandler) DeleteCustomer(w http.ResponseWriter, r *http.Request)
 	// Assuming tmpl is a template instance parsed at application initialization
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprintf(w, "Customer deleted successfully: %d - %s %s", deletedCustomer.Id, deletedCustomer.FirstName, deletedCustomer.LastName)
+}
+
+var store = sessions.NewCookieStore([]byte("askjdn23undm-dc2-3njdknwr"))
+
+func (h *CustomerHandler) HandleSessionStore(w http.ResponseWriter, r *http.Request) {
+
+	if r.Method != "POST" {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// Parse the form data
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "Error parsing form data", http.StatusBadRequest)
+		return
+	}
+
+	session, _ := store.Get(r, "customer-session")
+	// Set some session values.
+	session.Values["id"] = r.FormValue("id")
+	session.Values["name"] = r.FormValue("name")
+	session.Values["email"] = r.FormValue("email")
+
+	// Save session
+	if err := session.Save(r, w); err != nil {
+		fmt.Printf("Error: %s", err)
+		http.Error(w, "Failed to save session", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Session updated successfully"))
 }
