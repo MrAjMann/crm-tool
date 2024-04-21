@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<link href="/css/output.css" rel="stylesheet" />
+		<link
+			rel="stylesheet"
+			href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+		/>
+		<title>Data on the Downs - Create New Invoice</title>
+	</head>
+	<body class="flex bg-gray-100 min-h-screen">
+		<div class="bg-gray-800 text-white space-y-6 py-7 px-2 w-1/4 min-w-[250px]">
+			<!-- Sidebar content -->
+			{{template "sidebar.html"}}
+		</div>
+
+		<div class="flex-grow flex flex-col overflow-hidden">
+			<div class="bg-gray-800 text-white w-full">
+				<div class="px-4 py-4 flex justify-between items-center">
+					<h1 class="text-lg font-semibold">Customers</h1>
+					<div>
+						<button
+							hx-get="/create-customer-modal"
+							hx-trigger="click"
+							hx-target="#modal-container"
+							hx-swap="innerHTML"
+							class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-4 rounded"
+						>
+							Create Customer
+						</button>
+					</div>
+				</div>
+			</div>
+			<div id="modal-container" class="overlay"></div>
+			<div class="flex-1 overflow-y-auto">
+				<div class="container mx-auto p-4 max-w-4xl">
+					<h1 class="text-3xl font-semibold mb-4">Create Invoice</h1>
+					<div class="bg-white shadow-md rounded-lg p-3 overflow-hidden">
+						<form id="invoiceForm" class="space-y-6">
+							<!-- Due Date above Customer Search -->
+							<div class="flex justify-between mb-4">
+								<input
+									type="date"
+									name="DueDate"
+									id="invoice-DueDate"
+									class="w-full px-4 py-1 border rounded-lg"
+									placeholder="Due Date"
+								/>
+							</div>
+
+							<!-- Customer search -->
+							<div class="flex flex-wrap items-center gap-4 mb-4">
+								<label for="customerSearch" class="shrink-0 text-gray-700 w-32"
+									>Customer:</label
+								>
+								<input
+									type="text"
+									id="customerSearch"
+									class="flex-grow px-3 py-1 border rounded"
+									placeholder="Start typing to search for a customer..."
+									hx-get="/search-customers"
+									hx-trigger="keyup changed"
+									hx-target="#customerSearchResults"
+									hx-swap="innerHTML"
+									hx-params="search"
+									name="search"
+								/>
+							</div>
+
+							<!-- Customer Entry Form - Two Columns -->
+							<div class="flex gap-4">
+								<input
+									type="text"
+									name="CustomerName"
+									id="invoice-CustomerName"
+									class="w-1/2 px-4 py-1 border rounded-lg"
+									placeholder="Customer Name"
+								/>
+								<input
+									type="text"
+									name="CompanyName"
+									id="invoice-CompanyName"
+									class="w-1/2 px-4 py-1 border rounded-lg"
+									placeholder="Company Name"
+								/>
+								<input
+									type="text"
+									name="CustomerPhone"
+									id="invoice-CustomerPhone"
+									class="w-1/2 px-4 py-1 border rounded-lg"
+									placeholder="Customer Phone"
+								/>
+								<input
+									type="email"
+									name="CustomerEmail"
+									id="invoice-CustomerEmail"
+									class="w-1/2 px-4 py-1 border rounded-lg"
+									placeholder="Customer Email"
+								/>
+							</div>
+
+							<!-- Items Section -->
+							<div id="itemsSection" class="flex items-center gap-2">
+								<input
+									type="text"
+									name="items[0].Item"
+									class="flex-grow px-3 py-1 border rounded-lg"
+									placeholder="Item"
+								/>
+								<input
+									type="number"
+									name="items[0].Quantity"
+									class="w-20 px-3 py-1 border rounded-lg"
+									placeholder="Quantity"
+								/>
+								<input
+									type="number"
+									name="items[0].UnitPrice"
+									class="w-20 px-3 py-1 border rounded-lg"
+									placeholder="Unit Price"
+								/>
+								<input
+									type="number"
+									name="items[0].Subtotal"
+									class="w-20 px-3 py-1 border rounded-lg"
+									placeholder="Subtotal"
+								/>
+								<input
+									type="number"
+									name="items[0].Tax"
+									class="w-20 px-3 py-1 border rounded-lg"
+									placeholder="Tax"
+								/>
+								<input
+									type="number"
+									name="items[0].Total"
+									class="w-20 px-3 py-1 border rounded-lg"
+									placeholder="Total"
+								/>
+								<button
+									type="button"
+									class="bg-green-500 hover:bg-green-700 text-white font-bold py-1 px-4 rounded"
+								>
+									<i class="fas fa-plus"></i>
+								</button>
+							</div>
+
+							<!-- Submit and Close Buttons -->
+							<div class="flex justify-end space-x-4">
+								<button
+									type="submit"
+									class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-4 rounded"
+								>
+									Submit
+								</button>
+								<button
+									type="button"
+									onclick="closeModal()"
+									class="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-4 rounded"
+								>
+									Close
+								</button>
+							</div>
+						</form>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<script>
+			const itemsSection = document.getElementById("itemsSection");
+			const addItemBtn = document.querySelector(".add-item-btn");
+			let itemCount = 1;
+			let items = [];
+
+			addItemBtn.addEventListener("click", function () {
+				const itemRow = document.querySelector(".item-row");
+				const itemInputs = itemRow.querySelectorAll("input");
+				const itemData = {
+					Item: itemInputs[0].value,
+					Quantity: itemInputs[1].value,
+					UnitPrice: itemInputs[2].value,
+					Subtotal: itemInputs[3].value,
+					Tax: itemInputs[4].value,
+					Total: itemInputs[5].value,
+				};
+
+				items.push(itemData);
+
+				const newItemRow = document.createElement("div");
+				newItemRow.classList.add(
+					"item-row",
+					"mb-4",
+					"grid",
+					"grid-cols-8",
+					"gap-4"
+				);
+				newItemRow.innerHTML = `
+            <input type="text" name="items[${itemCount}].Item" class="col-span-2 px-3 py-1 border rounded" placeholder="Item" value="${itemData.Item}" />
+            <input type="number" name="items[${itemCount}].Quantity" class="px-3 py-1 border rounded" placeholder="Quantity" value="${itemData.Quantity}" />
+            <input type="number" name="items[${itemCount}].UnitPrice" class="px-3 py-1 border rounded" placeholder="Unit Price" value="${itemData.UnitPrice}" />
+            <input type="number" name="items[${itemCount}].Subtotal" class="px-3 py-1 border rounded" placeholder="Subtotal" value="${itemData.Subtotal}" />
+            <input type="number" name="items[${itemCount}].Tax" class="px-3 py-1 border rounded" placeholder="Tax" value="${itemData.Tax}" />
+            <input type="number" name="items[${itemCount}].Total" class="px-3 py-1 border rounded" placeholder="Total" value="${itemData.Total}" />
+            <button type="button" class="delete-item-btn inline-flex items-center py-1 px-4 bg-red-500 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-red-700 active:bg-red-700 focus:outline-none focus:border-red-700 focus:ring focus:ring-red-200 disabled:opacity-25 transition" data-item-index="${itemCount}">Delete</button>
+        `;
+				itemsSection.appendChild(newItemRow);
+				itemCount++;
+
+				// Clear the form inputs
+				itemInputs.forEach((input) => (input.value = ""));
+
+				// Add event listener to delete buttons
+				const deleteButtons = document.querySelectorAll(".delete-item-btn");
+				deleteButtons.forEach((button) => {
+					button.addEventListener("click", function () {
+						const itemIndex = this.dataset.itemIndex;
+						items = items.filter(
+							(item, index) => index !== parseInt(itemIndex) - 1
+						);
+						this.parentNode.remove();
+						updateItemRows();
+					});
+				});
+			});
+
+			function updateItemRows() {
+				const itemRows = document.querySelectorAll(".item-row");
+				itemRows.forEach((row, index) => {
+					const inputs = row.querySelectorAll("input");
+					const deleteButton = row.querySelector(".delete-item-btn");
+					inputs.forEach((input) => {
+						input.name = `items[${index}].${input.placeholder}`;
+					});
+					deleteButton.dataset.itemIndex = index + 1;
+				});
+			}
+		</script>
+
+		<script>
+			document
+				.getElementById("customerSearch")
+				.addEventListener("keyup", function () {
+					console.log(this.value); // This should log the current input value on keyup
+				});
+		</script>
+	</body>
+</html>

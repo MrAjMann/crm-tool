@@ -123,12 +123,27 @@ func main() {
 		http.ServeFile(w, r, modalPath)
 	})
 
-	http.HandleFunc("/create-invoice-modal", func(w http.ResponseWriter, r *http.Request) {
-		modalPath := "src/templates/modals/createInvoiceModal.html"
-		http.ServeFile(w, r, modalPath)
+	// http.HandleFunc("/create-invoice-modal", func(w http.ResponseWriter, r *http.Request) {
+	// 	modalPath := "src/templates/modals/createInvoiceModal.html"
+	// 	http.ServeFile(w, r, modalPath)
 
+	// })
+	// http.HandleFunc("/create-invoice", func(w http.ResponseWriter, r *http.Request) {
+	// 	modalPath := "src/templates/createInvoice.html"
+	// 	http.ServeFile(w, r, modalPath)
+
+	// })
+
+	http.HandleFunc("/create-invoice", func(w http.ResponseWriter, r *http.Request) {
+		// Execute the template that includes the sidebar
+		err := sideBarTmpl.ExecuteTemplate(w, "createInvoice.html", nil)
+		if err != nil {
+			http.Error(w, "Error executing template", http.StatusInternalServerError)
+			log.Println(err)
+		}
 	})
 
+	// Server startup and error handling remain unchanged
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080" // Default port if not specified
