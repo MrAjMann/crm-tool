@@ -3,6 +3,7 @@ package repository
 import (
 	"database/sql"
 	"fmt"
+	"log"
 	"strings"
 
 	"github.com/MrAjMann/crm/internal/model"
@@ -74,7 +75,7 @@ func (repo *CustomerRepository) GetCustomerById(id string) (model.Customer, erro
 
 func (repo *CustomerRepository) SearchCustomers(query string) ([]model.Customer, error) {
 	var customers []model.Customer
-
+	log.Println("Search Customer")
 	// Adjust the SQL query to better handle searches for both first and last names together
 	sqlQuery := `SELECT Id, FirstName, LastName, Email, Phone, CompanyName
                  FROM customers

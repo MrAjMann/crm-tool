@@ -123,17 +123,6 @@ func main() {
 		http.ServeFile(w, r, modalPath)
 	})
 
-	// http.HandleFunc("/create-invoice-modal", func(w http.ResponseWriter, r *http.Request) {
-	// 	modalPath := "src/templates/modals/createInvoiceModal.html"
-	// 	http.ServeFile(w, r, modalPath)
-
-	// })
-	// http.HandleFunc("/create-invoice", func(w http.ResponseWriter, r *http.Request) {
-	// 	modalPath := "src/templates/createInvoice.html"
-	// 	http.ServeFile(w, r, modalPath)
-
-	// })
-
 	http.HandleFunc("/create-invoice", func(w http.ResponseWriter, r *http.Request) {
 		// Execute the template that includes the sidebar
 		err := sideBarTmpl.ExecuteTemplate(w, "createInvoice.html", nil)

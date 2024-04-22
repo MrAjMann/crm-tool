@@ -128,76 +128,68 @@ func (h *CustomerHandler) HandleSearchCustomers(w http.ResponseWriter, r *http.R
 	}
 
 	query := r.URL.Query().Get("search")
-	log.Printf("Received search query: '%s'", query) // This logs the received query
+	log.Printf("Received search query: '%s'", query)
 
 	if query == "" {
 		http.Error(w, "Query parameter 'search' is missing or empty", http.StatusBadRequest)
 		return
 	}
-	customers, err := h.repo.SearchCustomers(query) // Assuming Query method accepts a search string
+
+	customers, err := h.repo.SearchCustomers(query)
 	if err != nil {
 		http.Error(w, "Database error on fetching customers", http.StatusInternalServerError)
-		log.Printf("Database error on fetching customers: %v\n", err)
+		log.Printf("Database error on fetching customers: %v", err)
 		return
 	}
 
 	w.Header().Set("Content-Type", "text/html")
 	var htmlOutput string
 
-	// Improved HTML output with added CSS for styling and JavaScript for click functionality
 	htmlOutput += `
-<style>
-    .customer-list { list-style-type: none; padding-left: 0; }
-    .customer-item { background: #f9f9f9; border: 1px solid #ddd; margin-top: 8px; padding: 8px 16px; border-radius: 4px; cursor: pointer; }
-    .customer-item:hover { background-color: #f0f0f0; }
-    .customer-info { margin: 0; }
-    .customer-info span { font-weight: bold; }
-</style>
-<ul class='customer-list'>`
+    <style>
+        .customer-list { list-style-type: none; margin: 0; padding: 0; }
+        .customer-item { background-color: #f9f9f9; border-left: 5px solid #007bff; margin-bottom: 8px; padding: 12px; border-radius: 4px; cursor: pointer; transition: background-color 0.3s; }
+        .customer-item:hover { background-color: #f0f0f0; }
+        .customer-info { margin: 0; color: #333; }
+        .customer-info span { font-weight: bold; }
+    </style>
+    <ul class='customer-list'>`
+
 	for _, customer := range customers {
 		htmlOutput += fmt.Sprintf(`
-<li class='customer-item'>
-    <p class='customer-info'><span>Id:</span> %d </p>
-    <p class='customer-info'><span>Name:</span> %s %s</p>
-    <p class='customer-info'><span>Email:</span> %s</p>
-    <p class='customer-info'><span>Phone:</span> %s</p>
-    <p class='customer-info'><span>Company:</span> %s</p>
-</li>`, customer.Id, customer.FirstName, customer.LastName, customer.Email, customer.Phone, customer.CompanyName)
+        <li class='customer-item'>
+            <p class='customer-info'><span>ID:</span> %d</p>
+            <p class='customer-info'><span>Name:</span> %s %s</p>
+            <p class='customer-info'><span>Email:</span> %s</p>
+            <p class='customer-info'><span>Phone:</span> %s</p>
+            <p class='customer-info'><span>Company:</span> %s</p>
+        </li>`, customer.Id, customer.FirstName, customer.LastName, customer.Email, customer.Phone, customer.CompanyName)
 	}
 	htmlOutput += "</ul>"
-	// Temp store, append to invoice data
-	htmlOutput += `
-	<script>
-		document.querySelectorAll('.customer-item').forEach(item => {
-			item.addEventListener('click', function() {
-				// Change the background color of only the clicked item
-				document.querySelectorAll('.customer-item').forEach(i => {
-					i.style.background = ''; // Reset background for all items
-				});
-				this.style.background = "#ff7f00";
-	
-				// Fetching the customer details correctly
-				var id = this.querySelector('.customer-info:nth-child(1)').innerText;
-				var name = this.querySelector('.customer-info:nth-child(2)').innerText;
-				var email = this.querySelector('.customer-info:nth-child(3)').innerText;
-	
-				// Sending data to server to store in session
-				fetch('./customer-session', {
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/x-www-form-urlencoded',
-					},
-					body: 'id=' + encodeURIComponent(id) + '&name=' + encodeURIComponent(name) + '&email=' + encodeURIComponent(email)
-					
-				})
-				.then(response => response.text())
-				.then(data => console.log(data))
-				.catch(error => console.error('Error:', error));
-			});
-		});
-	</script>`
 
-	w.Write([]byte(htmlOutput))
+	// Additional JavaScript for interactive functionality
+	htmlOutput += `
+    <script>
+        document.querySelectorAll('.customer-item').forEach(item => {
+            item.addEventListener('click', function() {
+                // Highlight the selected item
+                document.querySelectorAll('.customer-item').forEach(i => {
+                    i.style.borderLeft = '5px solid #007bff';
+                });
+                this.style.borderLeft = '5px solid #ff7f00';  // Highlight color change on click
+                
+                // Example of potentially useful data handling
+                const customerId = this.querySelector('.customer-info:nth-child(1)').innerText.split(':')[1].trim();
+                console.log('Selected Customer ID:', customerId);  // Just logging to console for demo
+            });
+        });
+    </script>`
+
+	if _, err = w.Write([]byte(htmlOutput)); err != nil {
+		log.Printf("Failed to write data: %v", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
 
 }
 
@@ -206,6 +198,7 @@ func (h *CustomerHandler) HandleSearchCustomers(w http.ResponseWriter, r *http.R
 // Delete a Customer
 
 func (h *CustomerHandler) DeleteCustomer(w http.ResponseWriter, r *http.Request) {
+
 	if r.Method != "DELETE" {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
@@ -233,13 +226,13 @@ func (h *CustomerHandler) DeleteCustomer(w http.ResponseWriter, r *http.Request)
 	log.Printf("Deleted customer: %+v", deletedCustomer)
 	// Assuming tmpl is a template instance parsed at application initialization
 	w.WriteHeader(http.StatusOK)
+
 	fmt.Fprintf(w, "Customer deleted successfully: %d - %s %s", deletedCustomer.Id, deletedCustomer.FirstName, deletedCustomer.LastName)
 }
 
 var store = sessions.NewCookieStore([]byte("askjdn23undm-dc2-3njdknwr"))
 
 func (h *CustomerHandler) HandleSessionStore(w http.ResponseWriter, r *http.Request) {
-
 	if r.Method != "POST" {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
@@ -251,7 +244,13 @@ func (h *CustomerHandler) HandleSessionStore(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	session, _ := store.Get(r, "customer-session")
+	session, err := store.Get(r, "customer-session")
+	if err != nil {
+		log.Printf("Error retrieving session: %v", err)
+		http.Error(w, "Session retrieval failed", http.StatusInternalServerError)
+		return
+	}
+
 	// Set some session values.
 	session.Values["id"] = r.FormValue("id")
 	session.Values["name"] = r.FormValue("name")
@@ -259,11 +258,13 @@ func (h *CustomerHandler) HandleSessionStore(w http.ResponseWriter, r *http.Requ
 
 	// Save session
 	if err := session.Save(r, w); err != nil {
-		fmt.Printf("Error: %s", err)
+		log.Printf("Failed to save session: %v", err)
 		http.Error(w, "Failed to save session", http.StatusInternalServerError)
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("Session updated successfully"))
+	if _, err := w.Write([]byte("Session updated successfully")); err != nil {
+		log.Printf("Failed to write data: %v", err)
+		return // Only log here, as the client already got the "200 OK" response code
+	}
 }
