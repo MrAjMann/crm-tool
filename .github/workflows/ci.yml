@@ -1,0 +1,17 @@
+name: DataNet CRM
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: '1.21.3'  # Ensure the version number is a string if it includes minor and patch versions
