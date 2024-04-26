@@ -93,17 +93,16 @@
 									</thead>
 									<tbody>
 										<tr class="item-row bg-gray-100 border-b">
-											<td class="px-5 py-5"><input type="text" name="items[0].Item" class="w-full px-3 py-1 border rounded-lg" placeholder="Item"/></td>
-											<td class="px-5 py-5"><input type="number" name="items[0].Quantity" class="w-full px-3 py-1 border rounded-lg" placeholder="Quantity"/></td>
-											<td class="px-5 py-5"><input type="number" name="items[0].UnitPrice" class="w-full px-3 py-1 border rounded-lg" placeholder="Unit Price"/></td>
-											<td class="px-5 py-5"><input type="number" name="items[0].Subtotal" class="w-full px-3 py-1 border rounded-lg" placeholder="Subtotal"/></td>
-											<td class="px-5 py-5"><input type="number" name="items[0].Tax" class="w-full px-3 py-1 border rounded-lg" placeholder="Tax"/></td>
-											<td class="px-5 py-5"><input type="number" name="items[0].Total" class="w-full px-3 py-1 border rounded-lg" placeholder="Total"/></td>
+											<td class="px-5 py-5"><input type="text" name="items[0].Item" class="w-full px-3 py-1 border rounded-lg item-name" placeholder="Item"/></td>
 											<td class="px-5 py-5">
-												<button type="button" class="add-item-btn bg-green-500 hover:bg-green-700 text-white font-bold py-1 px-4 rounded">
-													<i class="fas fa-plus"></i>
-												</button>
+												<input type="number" name="items[0].Quantity" class="w-full px-3 py-1 border rounded-lg item-quantity" hx-post="/calculate-invoice" hx-trigger="keyup changed delay:500ms" hx-include="closest tr" placeholder="0"/>
 											</td>
+											<td class="px-5 py-5">
+												<input type="number" name="items[0].UnitPrice" class="w-full px-3 py-1 border rounded-lg item-unitPrice" hx-post="/calculate-invoice" hx-trigger="keyup changed delay:500ms" hx-include="closest tr" placeholder="0.00"/>
+											</td>
+											<td class="px-5 py-5"><input type="number" name="items[0].Subtotal" class="w-full px-3 py-1 border rounded-lg item-subtotal" placeholder="0.00" readonly/></td>
+											<td class="px-5 py-5"><input type="number" name="items[0].Tax" class="w-full px-3 py-1 border rounded-lg item-tax" placeholder="0.00" readonly/></td>
+											<td class="px-5 py-5"><input type="number" name="items[0].Total" class="w-full px-3 py-1 border rounded-lg item-total" placeholder="0.00" readonly/></td>
 										</tr>
 									</tbody>
 								</table>
@@ -132,9 +131,26 @@
 		</div>
 		<script src="https://unpkg.com/htmx.org"></script>
 		<script>
+document.body.addEventListener('htmx:afterOnLoad', function(event) {
+    var response = event.detail.xhr.responseText;
+    var row = event.detail.elt.closest('.item-row');
+	console.log("row", row)
+	console.log("response", response)
+    if (response && response.subtotal !== undefined && response.tax !== undefined && response.total !== undefined) {
+        row.querySelector('.item-subtotal').value = response.subtotal.toFixed(2);
+        row.querySelector('.item-tax').value = response.tax.toFixed(2);
+        row.querySelector('.item-total').value = response.total.toFixed(2);
+		row.innerHTML = response;
+    } else {
+        console.error('Invalid response:', response);
+    }
+});
+</script>
+		<script>
 document.addEventListener('DOMContentLoaded', function() {
     const itemsSection = document.querySelector('#itemsSection tbody');
-    let itemCount = itemsSection.querySelectorAll('tr').length;  // Initial count of items, should be 1 initially
+
+	let itemCount = itemsSection.querySelectorAll('tr').length;  
 
     itemsSection.addEventListener('click', function(event) {
         if (event.target.classList.contains('add-item-btn')) {

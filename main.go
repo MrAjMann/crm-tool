@@ -109,6 +109,8 @@ func main() {
 	//Invoice Routes
 	http.HandleFunc("/invoices", invoiceHandler.GetAllInvoices)
 	http.HandleFunc("/add-invoice/", invoiceHandler.AddNewInvoice)
+	 http.HandleFunc("/calculate-invoice", invoiceHandler.InvoiceCalculationHandler)
+
 
 	// Session Routes
 	http.HandleFunc("/customer-session", customerHandler.HandleSessionStore)
@@ -122,6 +124,7 @@ func main() {
 		modalPath := "src/templates/modals/createCustomerModal.html"
 		http.ServeFile(w, r, modalPath)
 	})
+
 
 	http.HandleFunc("/create-invoice", func(w http.ResponseWriter, r *http.Request) {
 		// Execute the template that includes the sidebar

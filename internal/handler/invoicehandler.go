@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"html/template"
 	"log"
 	"net/http"
@@ -107,4 +108,52 @@ func (h *InvoiceHandler) AddNewInvoice(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Error executing template", http.StatusInternalServerError)
 		log.Printf("Error executing template: %v\n", err)
 	}
+}
+
+func (h *InvoiceHandler) InvoiceCalculationHandler(w http.ResponseWriter, r *http.Request) {
+
+	if err := r.ParseForm(); err != nil {
+		log.Printf("Could not parse form: %v", err)
+		http.Error(w, `{"error": "Could not parse form"}`, http.StatusBadRequest)
+		return
+	}
+
+	quantityStr := r.FormValue("quantity")
+	unitPriceStr := r.FormValue("unitPrice")
+	log.Printf("Received - Quantity: %s, Unit Price: %s", quantityStr, unitPriceStr)
+
+	if quantityStr == "" {
+		http.Error(w, "Quantity is required", http.StatusBadRequest)
+		return
+	}
+	quantity, err := strconv.Atoi(quantityStr)
+	if err != nil {
+		http.Error(w, "Invalid quantity", http.StatusBadRequest)
+		return
+	}
+
+	unitPrice, err := strconv.ParseFloat(r.FormValue("unitPrice"), 64)
+	if err != nil {
+		log.Printf("Error parsing unit price: %v", err)
+		http.Error(w, `{"error": "Invalid unit price"}`, http.StatusBadRequest)
+		return
+	}
+
+	subtotal := float64(quantity) * unitPrice
+	tax := subtotal * 0.10 // 10% tax
+	total := subtotal + tax
+
+	// Prepare HTML response
+	htmlResponse := fmt.Sprintf(`
+        <div>
+            <p>Subtotal: $%.2f</p>
+            <p>Tax: $%.2f</p>
+            <p>Total: $%.2f</p>
+        </div>
+    `, subtotal, tax, total)
+
+	// Write HTML response to the client
+	w.Header().Set("Content-Type", "text/html")
+	fmt.Fprint(w, htmlResponse)
+
 }
