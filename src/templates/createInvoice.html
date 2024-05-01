@@ -10,8 +10,8 @@
 		/>
 		<title>Data on the Downs - Create New Invoice</title>
 	</head>
-	<body class="flex bg-gray-100 ">
-		<div class="bg-gray-800 text-white  space-y-6 py-7 px-2">
+	<body class="flex bg-gray-100">
+		<div class="bg-gray-800 text-white space-y-6 py-7 px-2">
 			<!-- Sidebar content -->
 			{{template "sidebar.html"}}
 		</div>
@@ -19,69 +19,88 @@
 		<div class="flex-grow flex flex-col">
 			<!-- TopBar -->
 			<div class="bg-gray-800 text-white w-full">
-			<div class="mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+				<div
+					class="mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center"
+				>
 					<!-- <h1 class="text-lg font-semibold">Create Invoice</h1> -->
-				
 				</div>
 			</div>
-			<div id="modal-container" ></div>
-			<div class="flex-1 ">
-				<div class="container mx-auto p-4 ">
+			<div id="modal-container"></div>
+			<div class="flex-1">
+				<div class="container mx-auto p-4">
 					<h1 class="text-3xl font-semibold mb-4">Create Invoice</h1>
-					<div class="bg-white shadow-md rounded-lg p-3  ">
-						<form id="invoiceForm" class="space-y-6 px-12 mx-auto">
+					<div class="bg-white shadow-md rounded-lg p-3">
+						<form
+							id="invoiceForm"
+							class="space-y-6 px-12 mx-auto"
+							method="POST"
+							hx-post="/add-invoice/"
+						>
 							<!-- Due Date above Customer Search -->
 							<div class="flex flex-col">
-								<label class="w-40  py-1 text-gray-800 font-medium" for="DueDate">Due Date:</label>
+								<label class="w-40 py-1 text-gray-800 font-medium" for="DueDate"
+									>Due Date:</label
+								>
 								<input
 									type="date"
 									name="DueDate"
 									id="invoice-DueDate"
 									class="w-40 px-4 py-1 border rounded-lg shadow-md"
 									placeholder="Due Date"
-									style="background-color: #f3f4f6; border: 1px solid #d1d5db;"
+									style="background-color: #f3f4f6; border: 1px solid #d1d5db"
 								/>
 							</div>
+					
+							<div class="mb-4">
+								<label class="w-40 py-1 text-gray-800 font-medium" for="DueDate"
+									>Search Customers:</label
+								>
+								<div class="flex items-center space-x-3">
+									<input
+										type="text"
+										id="customerSearch"
+										class="text-gray-800 border w-full border-gray-200 outline-gray-400 shadow-md rounded-lg p-3"
+										placeholder="Start typing to search for a customer..."
+										hx-get="/search-customers"
+										hx-trigger="keyup changed"
+										hx-target="#customerSearchResults"
+										hx-swap="innerHTML"
+										hx-params="search"
+										name="search"
+									/>
+									<button
+										type="text"
+										id="add-customer"
+										hx-get="/create-customer-modal"
+										hx-trigger="click"
+										hx-target="#modal-container"
+										hx-swap="innerHTML"
+										class="mx-auto inline-flex items-center px-4 py-2 flex-nowrap justify-center items-center-center bg-green-500 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-wide hover:bg-green-600 active:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition ease-in-out duration-150"
+									>
+										<i class="fas fa-user-plus mr-2 fa-lg"></i> Add Customer
+									</button>
+								</div>
+								<div
+									id="customerSearchResults"
+									onclick="selectCustomer(event)"
+								></div>
+								<input
+									type="hidden"
+									name="customerId"
+									id="customerId"
+									value=""
+								/>
 
-							<!-- Customer search -->
-	<!-- Customer search -->
+								<div id="modal-container" class="overlay"></div>
+							</div>
 
-<div class="mb-4">
-    <label class="w-40 py-1 text-gray-800 font-medium" for="DueDate">Search Customers:</label>
-    <div class="flex items-center space-x-3">
-        <input 
-            type="text" 
-            id="customerSearch"
-            class="text-gray-800 border w-full border-gray-200 outline-gray-400 shadow-md rounded-lg p-3"
-            placeholder="Start typing to search for a customer..." 
-            hx-get="/search-customers"
-            hx-trigger="keyup changed"
-            hx-target="#customerSearchResults"
-            hx-swap="innerHTML"
-            hx-params="search"
-            name="search"
-        />
-        <button 
-		type="text" 
-		id="add-customer"
-		hx-get="/create-customer-modal"
-		hx-trigger="click"
-		hx-target="#modal-container"
-		hx-swap="innerHTML"
-            class="mx-auto inline-flex items-center px-4 py-2 flex-nowrap justify-center items-center-center bg-green-500 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-wide hover:bg-green-600 active:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition ease-in-out duration-150">
-            <i class="fas fa-user-plus mr-2 fa-lg" ></i> Add Customer
-        </button>
-    </div>
-    <div id="customerSearchResults"></div>
-	<div id="modal-container" class="overlay"></div>
-</div>
-							
-						
 							<!-- Items Section -->
 							<div id="itemsSection" class="shadow-md rounded-lg p-4">
 								<table class="min-w-full leading-normal">
 									<thead>
-										<tr class="text-left text-sm font-semibold tracking-wider border-b border-gray-200">
+										<tr
+											class="text-left text-sm font-semibold tracking-wider border-b border-gray-200"
+										>
 											<th class="px-5 py-3">Item</th>
 											<th class="px-5 py-3">Quantity</th>
 											<th class="px-5 py-3">Unit Price</th>
@@ -93,16 +112,68 @@
 									</thead>
 									<tbody>
 										<tr class="item-row bg-gray-100 border-b">
-											<td class="px-5 py-5"><input type="text" name="items[0].Item" class="w-full px-3 py-1 border rounded-lg item-name" placeholder="Item"/></td>
 											<td class="px-5 py-5">
-												<input type="number" name="items[0].Quantity" class="w-full px-3 py-1 border rounded-lg item-quantity" hx-post="/calculate-invoice" hx-trigger="keyup changed delay:500ms" hx-include="closest tr" placeholder="0"/>
+												<input
+													type="text"
+													name="item"
+													class="w-full px-3 py-1 border rounded-lg item-name"
+													placeholder="Item"
+												/>
 											</td>
 											<td class="px-5 py-5">
-												<input type="number" name="items[0].UnitPrice" class="w-full px-3 py-1 border rounded-lg item-unitPrice" hx-post="/calculate-invoice" hx-trigger="keyup changed delay:500ms" hx-include="closest tr" placeholder="0.00"/>
+												<input
+													type="number"
+													name="quantity"
+													class="w-full px-3 py-1 border rounded-lg item-quantity"
+													hx-post="/calculate-invoice"
+													hx-trigger="keyup changed delay:2s"
+												/>
 											</td>
-											<td class="px-5 py-5"><input type="number" name="items[0].Subtotal" class="w-full px-3 py-1 border rounded-lg item-subtotal" placeholder="0.00" readonly/></td>
-											<td class="px-5 py-5"><input type="number" name="items[0].Tax" class="w-full px-3 py-1 border rounded-lg item-tax" placeholder="0.00" readonly/></td>
-											<td class="px-5 py-5"><input type="number" name="items[0].Total" class="w-full px-3 py-1 border rounded-lg item-total" placeholder="0.00" readonly/></td>
+											<td class="px-5 py-5">
+												<input
+													type="number"
+													name="unitPrice"
+													class="w-full px-3 py-1 border rounded-lg item-unitPrice"
+													hx-post="/calculate-invoice"
+													hx-trigger="keyup changed delay:3s"
+												/>
+											</td>
+											<td class="px-5 py-5">
+												<input
+													type="number"
+													readonly
+													class="w-full px-3 py-1 border rounded-lg item-subtotal"
+													placeholder="Subtotal"
+													id="subtotal-field"
+												/>
+											</td>
+											<td class="px-5 py-5">
+												<input
+													type="number"
+													readonly
+													class="w-full px-3 py-1 border rounded-lg item-tax"
+													placeholder="Tax"
+													id="tax-field"
+												/>
+											</td>
+											<td class="px-5 py-5">
+												<input
+													type="number"
+													readonly
+													class="w-full px-3 py-1 border rounded-lg item-total"
+													placeholder="Total"
+													id="total-field"
+													value=""
+												/>
+											</td>
+											<td class="px-5 py-5">
+												<button
+													type="button"
+													class="add-item-btn bg-green-500 hover:bg-green-700 text-white font-bold py-1 px-4 rounded"
+												>
+													<i class="fas fa-plus"></i>
+												</button>
+											</td>
 										</tr>
 									</tbody>
 								</table>
@@ -129,61 +200,122 @@
 				</div>
 			</div>
 		</div>
+
 		<script src="https://unpkg.com/htmx.org"></script>
 		<script>
-document.body.addEventListener('htmx:afterOnLoad', function(event) {
-    var response = event.detail.xhr.responseText;
-    var row = event.detail.elt.closest('.item-row');
-	console.log("row", row)
-	console.log("response", response)
-    if (response && response.subtotal !== undefined && response.tax !== undefined && response.total !== undefined) {
-        row.querySelector('.item-subtotal').value = response.subtotal.toFixed(2);
-        row.querySelector('.item-tax').value = response.tax.toFixed(2);
-        row.querySelector('.item-total').value = response.total.toFixed(2);
-		row.innerHTML = response;
-    } else {
-        console.error('Invalid response:', response);
-    }
-});
-</script>
+			htmx.logger = function (elt, event, data) {
+				if (console) {
+					console.log(event, elt, data);
+				}
+			};
+		</script>
+		<!-- Console log form data for testing DELETE later -->
+
 		<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const itemsSection = document.querySelector('#itemsSection tbody');
+			document.addEventListener("DOMContentLoaded", function () {
+				const form = document.getElementById("invoiceForm");
 
-	let itemCount = itemsSection.querySelectorAll('tr').length;  
+				form.addEventListener("htmx:configRequest", function (event) {
+					const customerId = document.getElementById("customerId").value;
+					if (event.detail.parameters instanceof URLSearchParams) {
+						event.detail.parameters.set("customerId", customerId);
+					} else {
+						event.detail.parameters.customerId = customerId;
+					}
 
-    itemsSection.addEventListener('click', function(event) {
-        if (event.target.classList.contains('add-item-btn')) {
-            const lastRow = event.target.closest('tr');
-            const clone = lastRow.cloneNode(true);
-            clone.querySelectorAll('input').forEach(input => {
-                const nameBase = input.name.match(/^[^\[]+/)[0]; // Strip indices
-                input.name = `${nameBase}[${itemCount}]`; // Update with new index
-                input.value = ''; // Clear values
-            });
-            const actionCell = clone.querySelector('td:last-child');
-            actionCell.innerHTML = '<button type="button" class="delete-item-btn bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-4 rounded"><i class="fas fa-trash"></i></button>';
-            itemsSection.appendChild(clone);
-            itemCount++; // Increment the counter
-        } else if (event.target.classList.contains('delete-item-btn')) {
-            const row = event.target.closest('tr');
-            row.remove();
-            updateItemIndexes();
-        }
-    });
+					const formData = new FormData(form);
+					const data = {};
+					formData.forEach(function (value, key) {
+						console.log(data[key]);
+						data[key] = value;
+					});
+					data["customerId"] = customerId; // Ensure customer ID is logged
 
-    function updateItemIndexes() {
-        const rows = itemsSection.querySelectorAll('tr');
-        rows.forEach((row, index) => {
-            row.querySelectorAll('input').forEach(input => {
-                const nameBase = input.name.match(/^[^\[]+/)[0];
-                input.name = `${nameBase}[${index}]`;
-            });
-        });
-    }
-});
+					console.log("Submitting the following data:", data);
+				});
+			});
+		</script>
 
-</script>
+		<script>
+			function selectCustomer(event) {
+				const customerItem = event.target.closest(".customer-item");
+				if (customerItem) {
+					const customerId = customerItem.getAttribute("data-customer-id");
+					if (customerId) {
+						document.getElementById("customerId").value = customerId;
+						console.log("Customer ID set to:", customerId);
+					}
+				}
+			}
+		</script>
 
+		<script>
+			document.addEventListener("DOMContentLoaded", function () {
+				const itemsSection = document.querySelector("#itemsSection tbody");
+
+				itemsSection.addEventListener("keydown", function (event) {
+					if (event.target.classList.contains("item-unitPrice")) {
+						const key = event.key;
+						if (key === "Enter" || key === "Tab") {
+							const row = event.target.closest("tr");
+							const quantity = row.querySelector(".item-quantity").value;
+							const unitPrice = row.querySelector(".item-unitPrice").value;
+
+							if (quantity && unitPrice) {
+								event.preventDefault();
+
+								fetch("/calculate-invoice", {
+									method: "POST",
+									headers: {
+										"Content-Type": "application/x-www-form-urlencoded",
+									},
+									body: `quantity=${quantity}&unitPrice=${unitPrice}`,
+								})
+									.then((response) => response.json())
+									.then((data) => {
+										if (data.error) {
+											console.error("Error:", data.error);
+										} else {
+											// Update the fields with the returned data
+											row.querySelector(".item-subtotal").value = data.subtotal;
+											row.querySelector(".item-tax").value = data.tax;
+											row.querySelector(".item-total").value = data.total;
+										}
+									})
+									.catch((error) => console.error("Fetch error:", error));
+							}
+						}
+					}
+				});
+			});
+		</script>
+
+		<script>
+			document.addEventListener("DOMContentLoaded", function () {
+				const itemsSection = document.querySelector("#itemsSection tbody");
+
+				document.addEventListener("click", function (event) {
+					if (event.target.closest(".add-item-btn")) {
+						const dataEntryRow = event.target.closest("tr");
+						const clone = dataEntryRow.cloneNode(true);
+
+						dataEntryRow.querySelectorAll("input").forEach((input, index) => {
+							clone.querySelectorAll("input")[index].value = input.value;
+							input.value = "";
+						});
+
+						const addBtn = clone.querySelector(".add-item-btn");
+						addBtn.className =
+							"delete-item-btn bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-4 rounded";
+						addBtn.innerHTML = '<i class="fas fa-trash"></i>';
+
+						itemsSection.appendChild(clone);
+					} else if (event.target.closest(".delete-item-btn")) {
+						const row = event.target.closest("tr");
+						row.remove();
+					}
+				});
+			});
+		</script>
 	</body>
 </html>

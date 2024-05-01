@@ -157,13 +157,13 @@ func (h *CustomerHandler) HandleSearchCustomers(w http.ResponseWriter, r *http.R
 
 	for _, customer := range customers {
 		htmlOutput += fmt.Sprintf(`
-        <li class='customer-item'>
-            <p class='customer-info'><span>ID:</span> %d</p>
-            <p class='customer-info'><span>Name:</span> %s %s</p>
-            <p class='customer-info'><span>Email:</span> %s</p>
-            <p class='customer-info'><span>Phone:</span> %s</p>
-            <p class='customer-info'><span>Company:</span> %s</p>
-        </li>`, customer.Id, customer.FirstName, customer.LastName, customer.Email, customer.Phone, customer.CompanyName)
+			<li class='customer-item' data-customer-id="%d" onclick="selectCustomer(event)">
+				<div class='customer-info'><span>CustomerId:</span> %d</div>
+				<div class='customer-info'><span>Name:</span> %s %s</div>
+				<div class='customer-info'><span>Email:</span> %s</div>
+				<div class='customer-info'><span>Phone:</span> %s</div>
+				<div class='customer-info'><span>Company:</span> %s</div>
+			</li>`, customer.Id, customer.Id, customer.FirstName, customer.LastName, customer.Email, customer.Phone, customer.CompanyName)
 	}
 	htmlOutput += "</ul>"
 
@@ -172,15 +172,15 @@ func (h *CustomerHandler) HandleSearchCustomers(w http.ResponseWriter, r *http.R
     <script>
         document.querySelectorAll('.customer-item').forEach(item => {
             item.addEventListener('click', function() {
-                // Highlight the selected item
+                
                 document.querySelectorAll('.customer-item').forEach(i => {
                     i.style.borderLeft = '5px solid #007bff';
                 });
                 this.style.borderLeft = '5px solid #ff7f00';  // Highlight color change on click
                 
-                // Example of potentially useful data handling
                 const customerId = this.querySelector('.customer-info:nth-child(1)').innerText.split(':')[1].trim();
-                console.log('Selected Customer ID:', customerId);  // Just logging to console for demo
+					
+                console.log('Selected Customer ID:', customerId);  
             });
         });
     </script>`

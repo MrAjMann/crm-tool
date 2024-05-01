@@ -9,7 +9,7 @@ type Invoice struct {
 	InvoiceNumber   string
 	InvoiceDate     time.Time
 	DueDate         time.Time
-	CustomerId      string
+	CustomerId      int
 	CustomerName    string
 	CompanyName     string
 	CustomerPhone   string
@@ -20,7 +20,6 @@ type Invoice struct {
 	CreatedAt       time.Time
 	UpdatedAt       time.Time
 }
-
 type ItemList struct {
 	InvoiceId string
 	Item      string
@@ -33,12 +32,11 @@ type ItemList struct {
 
 type PaymentStatus int
 
-
-
 const (
-	Paid    PaymentStatus = iota // 0
-	Pending                      // 1
-	Overdue                      // 2
+	Unpaid  PaymentStatus = iota // 0
+	Paid                         // 1
+	Pending                      // 2
+	Overdue                      // 3
 )
 
 // This code will be used for the business logic, however i want to keep track roughly of my intention before I get to that point
@@ -47,7 +45,6 @@ const (
 //     "fmt"
 //     "model"  - Just import the model folder
 // )
-
 
 // func main() {
 //     fmt.Println(model.Paid)    // Output: 0

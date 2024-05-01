@@ -37,42 +37,58 @@ func (repo *InvoiceRepository) GetAllInvoices() ([]model.Invoice, error) {
 
 }
 
-func (repo *InvoiceRepository) AddNewInvoice(invoice model.Invoice) (string, error) {
-	var invoiceId string
-	var lastInvoiceNumber string
+func generateInvoiceId(lastId string) (string, error) {
+	// Assuming lastId is in the format "INV0001"
+	if lastId == "" {
+		return "INV0001", nil
+	}
+	prefix := lastId[:3]                    // "INV"
+	number, err := strconv.Atoi(lastId[3:]) // "0001" -> 1
+	if err != nil {
+		return "", err
+	}
+	newId := fmt.Sprintf("%s%04d", prefix, number+1)
+	return newId, nil
+}
 
-	err := repo.db.QueryRow("SELECT InvoiceNumber FROM invoices ORDER by InvoiceNumber DESC LIMIT 1").Scan(&lastInvoiceNumber)
+func (repo *InvoiceRepository) AddNewInvoice(invoice model.Invoice) (string, error) {
+	var lastInvoiceId string
+
+	// Fetch the last InvoiceId to generate the next one
+	err := repo.db.QueryRow("SELECT InvoiceId FROM invoices ORDER BY InvoiceId DESC LIMIT 1").Scan(&lastInvoiceId)
 	if err != nil && err != sql.ErrNoRows {
-		return "", fmt.Errorf("error fetching last invoice number: %v", err)
+		return "", fmt.Errorf("error fetching last invoice ID: %v", err)
 	}
 
-	newInvoiceNumber, err := GenerateInvoiceNumber(lastInvoiceNumber)
+	// Generate new InvoiceId based on the last InvoiceId
+	newInvoiceId, err := generateInvoiceId(lastInvoiceId)
 	if err != nil {
 		return "", err
 	}
 
-	invoiceDate := time.Now()
+	// Prepare the new invoice with the generated InvoiceId and current time
+	invoice.InvoiceId = newInvoiceId
+	invoice.InvoiceDate = time.Now() // Set the invoice date to now
 
-	
-
-	// The query must include actual parameters from the 'invoice' object
+	// Perform the insert operation and return the newly created InvoiceId
 	err = repo.db.QueryRow(
-		"INSERT INTO invoices ( InvoiceNumber, InvoiceDate, DueDate, CustomerId, CustomerName, CompanyName, CustomerPhone, CustomerEmail, PaymentStatus) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING InvoiceId",
-		newInvoiceNumber,      // $1
-		invoiceDate,           // $2
-		invoice.DueDate,       // $3
-		invoice.CustomerId,    // $4 Assume there's a CustomerId field in your model
-		invoice.CustomerName,  // $5
-		invoice.CompanyName,   // $6
-		invoice.CustomerPhone, // $7
-		invoice.CustomerEmail, // $8
-		invoice.PaymentStatus, // $9
-	).Scan(&invoiceId)
-
+		"INSERT INTO invoices (InvoiceId, InvoiceNumber, InvoiceDate, DueDate, CustomerId, CustomerName, CompanyName, CustomerPhone, CustomerEmail, PaymentStatus) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING InvoiceId",
+		newInvoiceId,          // $1
+		invoice.InvoiceNumber, // $2 (Optionally generate this as well, if needed)
+		invoice.InvoiceDate,   // $3
+		invoice.DueDate,       // $4
+		invoice.CustomerId,    // $5
+		invoice.CustomerName,  // $6
+		invoice.CompanyName,   // $7
+		invoice.CustomerPhone, // $8
+		invoice.CustomerEmail, // $9
+		invoice.PaymentStatus, // $10
+	).Scan(&newInvoiceId)
 	if err != nil {
-		return "", fmt.Errorf("error returning InvoiceId: %v", err)
+		return "", fmt.Errorf("error inserting new invoice: %v", err)
 	}
-	return invoiceId, nil
+
+	return newInvoiceId, nil
 }
 
 func GenerateInvoiceNumber(lastInvoiceNumber string) (string, error) {

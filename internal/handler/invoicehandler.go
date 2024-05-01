@@ -50,29 +50,47 @@ func (h *InvoiceHandler) AddNewInvoice(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := r.ParseForm()
-	if err != nil {
-		http.Error(w, "Error parsing form", http.StatusBadRequest)
+	if err := r.ParseForm(); err != nil {
 		log.Printf("Error parsing form: %v\n", err)
+		http.Error(w, "Error parsing form", http.StatusBadRequest)
+		return
+	}
+
+	customerIdStr := r.FormValue("customerId")
+	println(customerIdStr)
+	if customerIdStr == "" {
+		// Handle error: Customer ID is required
+		http.Error(w, "Customer ID is required", http.StatusBadRequest)
+		return
+	}
+	customerId, err := strconv.Atoi(customerIdStr)
+	if err != nil {
+		// Handle error: Invalid Customer ID
+		http.Error(w, "Invalid Customer ID", http.StatusBadRequest)
 		return
 	}
 
 	paymentStatusStr := r.FormValue("paymentStatus")
+	if paymentStatusStr == "" {
+		paymentStatusStr = "0"
+	}
 	paymentStatusInt, err := strconv.Atoi(paymentStatusStr)
 	if err != nil {
-		http.Error(w, "Invalid payment status", http.StatusBadRequest)
 		log.Printf("Invalid payment status: %v\n", err)
+		http.Error(w, "Invalid payment status", http.StatusBadRequest)
 		return
 	}
 
-	// Validate payment status
-	if paymentStatusInt < int(model.Paid) || paymentStatusInt > int(model.Overdue) {
-		http.Error(w, "Payment status out of range", http.StatusBadRequest)
+	if paymentStatusInt < int(model.Unpaid) || paymentStatusInt > int(model.Overdue) {
 		log.Printf("Payment status out of range: received %v\n", paymentStatusInt)
+		http.Error(w, "Payment status out of range", http.StatusBadRequest)
 		return
 	}
 
+	log.Printf("Received form data: %v", r.Form)
+	// Create a new invoice from form values
 	invoice := model.Invoice{
+		CustomerId:    customerId,
 		CustomerName:  r.FormValue("customerName"),
 		DueDate:       time.Now().AddDate(0, 0, 30),
 		CustomerEmail: r.FormValue("email"),
@@ -80,41 +98,54 @@ func (h *InvoiceHandler) AddNewInvoice(w http.ResponseWriter, r *http.Request) {
 		CustomerPhone: r.FormValue("phone"),
 	}
 
+	// Add the new invoice to the database
 	invoiceId, err := h.repo.AddNewInvoice(invoice)
 	if err != nil {
-		http.Error(w, "Database error on creating new invoice", http.StatusInternalServerError)
 		log.Printf("Database error on creating new invoice: %v\n", err)
+		http.Error(w, "Database error on creating new invoice", http.StatusInternalServerError)
 		return
 	}
 
-	// Corrected to use the structure InvoiceData with a slice of Invoices
+	address := model.Address{
+		UnitNumber:   "",
+		StreetNumber: "",
+		StreetName:   "123 Main St",
+		City:         "Anytown",
+		State:        "NY",
+		Postcode:     "12345",
+	}
+
+	// Prepare data for template rendering
 	data := InvoiceData{
 		Invoices: []model.Invoice{
 			{
-				InvoiceId:     invoiceId, // Now including InvoiceId
-				InvoiceNumber: invoice.InvoiceNumber,
-				InvoiceDate:   invoice.InvoiceDate,
-				DueDate:       invoice.DueDate,
-				CustomerEmail: invoice.CustomerEmail,
-				CompanyName:   invoice.CompanyName,
-				CustomerPhone: invoice.CustomerPhone,
-				PaymentStatus: invoice.PaymentStatus,
+				InvoiceId:       invoiceId,
+				InvoiceNumber:   "",
+				InvoiceDate:     time.Now(),
+				DueDate:         invoice.DueDate,
+				CustomerId:      invoice.CustomerId,
+				CustomerName:    invoice.CustomerName,
+				CompanyName:     invoice.CompanyName,
+				CustomerPhone:   invoice.CustomerPhone,
+				CustomerEmail:   invoice.CustomerEmail,
+				PaymentStatus:   model.PaymentStatus(paymentStatusInt),
+				CustomerAddress: address,
+				ItemList:        []model.ItemList{},
 			},
 		},
 	}
 
-	err = h.tmpl.ExecuteTemplate(w, "invoice-list-element", data)
-	if err != nil {
-		http.Error(w, "Error executing template", http.StatusInternalServerError)
+	// Execute the template
+	if err := h.tmpl.ExecuteTemplate(w, "invoice-list-element", data); err != nil {
 		log.Printf("Error executing template: %v\n", err)
+		http.Error(w, "Error executing template", http.StatusInternalServerError)
 	}
 }
 
 func (h *InvoiceHandler) InvoiceCalculationHandler(w http.ResponseWriter, r *http.Request) {
-
 	if err := r.ParseForm(); err != nil {
 		log.Printf("Could not parse form: %v", err)
-		http.Error(w, `{"error": "Could not parse form"}`, http.StatusBadRequest)
+		http.Error(w, "<p>Error: Could not parse form.</p>", http.StatusBadRequest)
 		return
 	}
 
@@ -123,37 +154,42 @@ func (h *InvoiceHandler) InvoiceCalculationHandler(w http.ResponseWriter, r *htt
 	log.Printf("Received - Quantity: %s, Unit Price: %s", quantityStr, unitPriceStr)
 
 	if quantityStr == "" {
-		http.Error(w, "Quantity is required", http.StatusBadRequest)
-		return
-	}
-	quantity, err := strconv.Atoi(quantityStr)
-	if err != nil {
-		http.Error(w, "Invalid quantity", http.StatusBadRequest)
+		http.Error(w, "<p>Error: Quantity is required.</p>", http.StatusBadRequest)
 		return
 	}
 
-	unitPrice, err := strconv.ParseFloat(r.FormValue("unitPrice"), 64)
+	quantity, err := strconv.Atoi(quantityStr)
+	if err != nil {
+		http.Error(w, "<p>Error: Invalid quantity.</p>", http.StatusBadRequest)
+		return
+	}
+	if unitPriceStr == "" {
+		http.Error(w, "<p>Error: UnitPrice is required.</p>", http.StatusBadRequest)
+		return
+	}
+
+	unitPrice, err := strconv.ParseFloat(unitPriceStr, 64)
 	if err != nil {
 		log.Printf("Error parsing unit price: %v", err)
-		http.Error(w, `{"error": "Invalid unit price"}`, http.StatusBadRequest)
+		http.Error(w, "<p>Error: Invalid unit price.</p>", http.StatusBadRequest)
 		return
 	}
 
 	subtotal := float64(quantity) * unitPrice
+
 	tax := subtotal * 0.10 // 10% tax
+
 	total := subtotal + tax
+	log.Printf("Quantity: $%.2f, UnitPrice:$%.2f,Subtotal: $%.2f, Tax: $%.2f, Total: $%.2f", float64(quantity), float64(unitPrice), subtotal, tax, total)
 
 	// Prepare HTML response
-	htmlResponse := fmt.Sprintf(`
-        <div>
-            <p>Subtotal: $%.2f</p>
-            <p>Tax: $%.2f</p>
-            <p>Total: $%.2f</p>
-        </div>
-    `, subtotal, tax, total)
-
-	// Write HTML response to the client
-	w.Header().Set("Content-Type", "text/html")
-	fmt.Fprint(w, htmlResponse)
-
+	w.Header().Set("Content-Type", "application/json")
+	// return as a json object
+	jsonResponse := fmt.Sprintf(`
+        {
+            "subtotal": "%.2f",
+            "tax": "%.2f",
+            "total": "%.2f"
+        }`, subtotal, tax, total)
+	fmt.Fprint(w, jsonResponse)
 }

@@ -124,7 +124,7 @@ func createOtherTables(db *sql.DB) error {
         BEGIN
             IF NOT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'invoices') THEN
                 CREATE TABLE invoices (
-                    InvoiceId SERIAL PRIMARY KEY,
+                    InvoiceId TEXT PRIMARY KEY,
                     InvoiceNumber TEXT,
                     InvoiceDate TIMESTAMP WITHOUT TIME ZONE NOT NULL,
                     DueDate DATE,
@@ -134,7 +134,7 @@ func createOtherTables(db *sql.DB) error {
                     CustomerPhone TEXT NOT NULL,
                     CustomerEmail TEXT NOT NULL,
                     PaymentStatus INTEGER NOT NULL,
-                    CustomerAddress TEXT NOT NULL,
+                    CustomerAddress TEXT,
                     CreatedAt TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP,
                     UpdatedAt TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP,
                     FOREIGN KEY (CustomerId) REFERENCES customers(Id) ON DELETE CASCADE
@@ -166,7 +166,7 @@ func createOtherTables(db *sql.DB) error {
             IF NOT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'item_lists') THEN
                 CREATE TABLE item_lists (
                     ItemId SERIAL PRIMARY KEY,
-                    InvoiceId INTEGER NOT NULL,
+                    InvoiceId TEXT NOT NULL,
                     Item TEXT NOT NULL,
                     Quantity INTEGER NOT NULL,
                     UnitPrice DECIMAL NOT NULL,
