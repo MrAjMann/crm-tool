@@ -279,18 +279,17 @@ func (h *CustomerHandler) HandleSessionStore(w http.ResponseWriter, r *http.Requ
 }
 
 func (h *CustomerHandler) CheckAddress(customerId int) (*model.Address, error) {
-	if customerId < 0 {
-		return nil, fmt.Errorf("no customer ID provided")
+	if customerId < 1 {
+		return nil, fmt.Errorf("invalid customer ID provided")
 	}
 
-	customer, err := h.repo.GetCustomerById(customerId)
+	address, err := h.repo.GetAddressByCustomerId(customerId)
 	if err != nil {
+		log.Printf("Error finding Address: %+v", address)
 		return nil, err
 	}
-	if customer.Address == nil {
-		return nil, fmt.Errorf("address is nil")
-	}
-	log.Printf("Deleted customer: %+v", customer.Address)
 
-	return customer.Address, nil
+	// Assuming GetAddressByCustomerId handles nil address correctly
+	log.Printf("Retrieved customer address: %+v", address)
+	return address, nil
 }

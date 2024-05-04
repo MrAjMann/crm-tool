@@ -135,3 +135,26 @@ func (repo *CustomerRepository) DeleteCustomerById(id string) (model.Customer, e
 	return customer, nil
 
 }
+
+func (repo *CustomerRepository) GetAddressByCustomerId(id int) (*model.Address, error) {
+	address := &model.Address{}
+
+	query := `SELECT  UnitNumber, StreetNumber, StreetName, City, State, Postcode
+                        FROM addresses
+                        WHERE CustomerId = $1`
+
+	err := repo.db.QueryRow(query, id).Scan(
+		&address.UnitNumber,
+		&address.StreetNumber,
+		&address.StreetName,
+		&address.City,
+		&address.State,
+		&address.Postcode,
+	)
+	if err != nil {
+		log.Printf("Error retrieving customer address: %v", err)
+		return address, nil
+	}
+	log.Printf("Retrieved customer address: %+v", address)
+	return address, nil
+}

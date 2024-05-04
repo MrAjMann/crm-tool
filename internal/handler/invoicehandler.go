@@ -45,6 +45,7 @@ func (h *InvoiceHandler) GetAllInvoices(w http.ResponseWriter, r *http.Request) 
 }
 
 func (h *InvoiceHandler) AddNewInvoice(w http.ResponseWriter, r *http.Request) {
+	log.Printf("AddNewInvoice called with method %s", r.Method)
 	if r.Method != "POST" {
 		log.Printf("error Method not allowed %v\n", r.Method)
 		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
@@ -88,7 +89,12 @@ func (h *InvoiceHandler) AddNewInvoice(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Printf("Received form data: %v", r.Form)
+	items, err := parseItems(r)
+	if err != nil {
+		http.Error(w, "Error parsing items: "+err.Error(), http.StatusBadRequest)
+		return
+	}
+
 	// Create a new invoice from form values
 	invoice := model.Invoice{
 		CustomerId:    customerId,
@@ -97,6 +103,7 @@ func (h *InvoiceHandler) AddNewInvoice(w http.ResponseWriter, r *http.Request) {
 		CustomerEmail: r.FormValue("email"),
 		CompanyName:   r.FormValue("companyName"),
 		CustomerPhone: r.FormValue("phone"),
+		ItemList:      items,
 	}
 
 	// Add the new invoice to the database
@@ -107,14 +114,13 @@ func (h *InvoiceHandler) AddNewInvoice(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-
 	customerAddress, err := h.customerHandler.CheckAddress(customerId)
 	if err != nil {
 		log.Printf("Database error on fetching address: %v\n", err)
-		http.Error(w, "Database error on fetching address", http.StatusInternalServerError)
 		return
+
 	}
-	log.Printf("Deleted customer: %+v", customerAddress)
+	log.Printf("CustomerAddress: %+v", customerAddress)
 	// Prepare data for template rendering
 	data := InvoiceData{
 		Invoices: []model.Invoice{
@@ -134,7 +140,7 @@ func (h *InvoiceHandler) AddNewInvoice(w http.ResponseWriter, r *http.Request) {
 			},
 		},
 	}
-	log.Printf("Error executing template: %v\n", data)
+	log.Printf("Template Data: %v\n", data)
 	// Execute the template
 	if err := h.tmpl.ExecuteTemplate(w, "invoice-list-element", data); err != nil {
 		log.Printf("Error executing template: %v\n", err)
@@ -180,7 +186,6 @@ func (h *InvoiceHandler) InvoiceCalculationHandler(w http.ResponseWriter, r *htt
 	tax := subtotal * 0.10 // 10% tax
 
 	total := subtotal + tax
-	// log.Printf("Quantity: $%.2f, UnitPrice:$%.2f,Subtotal: $%.2f, Tax: $%.2f, Total: $%.2f", float64(quantity), float64(unitPrice), subtotal, tax, total)
 
 	// Prepare HTML response
 	w.Header().Set("Content-Type", "application/json")
@@ -192,4 +197,20 @@ func (h *InvoiceHandler) InvoiceCalculationHandler(w http.ResponseWriter, r *htt
             "total": "%.2f"
         }`, subtotal, tax, total)
 	fmt.Fprint(w, jsonResponse)
+}
+
+func (h *InvoiceHandler) AddItemToInvoice(w http.ResponseWriter, r *http.Request) {
+	log.Printf("AddItemToInvoice called with method %s", r.Method)
+	if r.Method != "POST" {
+		log.Printf("error Method not allowed %v\n", r.Method)
+		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	if err := r.ParseForm(); err != nil {
+		log.Printf("Error parsing form: %v\n", err)
+		http.Error(w, "Error parsing form", http.StatusBadRequest)
+		return
+	}
+
 }

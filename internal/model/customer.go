@@ -23,6 +23,7 @@ type Customer struct {
 	UpdatedAt          time.Time
 }
 type Address struct {
+	CustomerId      int
 	UnitNumber   string
 	StreetNumber string
 	StreetName   string

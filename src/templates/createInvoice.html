@@ -202,14 +202,7 @@
 		</div>
 
 		<script src="https://unpkg.com/htmx.org"></script>
-		<!-- <script>
-			htmx.logger = function (elt, event, data) {
-				if (console) {
-					console.log(event, elt, data);
-				}
-			};
-		</script> -->
-		<!-- Console log form data for testing DELETE later -->
+
 
 		<script>
 			document.addEventListener("DOMContentLoaded", function () {
@@ -226,12 +219,12 @@
 					const formData = new FormData(form);
 					const data = {};
 					formData.forEach(function (value, key) {
-						console.log(data[key]);
+						// console.log(data[key]);
 						data[key] = value;
 					});
 					data["customerId"] = customerId; // Ensure customer ID is logged
 
-					console.log("Submitting the following data:", data);
+					
 				});
 			});
 		</script>
@@ -243,7 +236,7 @@
 					const customerId = customerItem.getAttribute("data-customer-id");
 					if (customerId) {
 						document.getElementById("customerId").value = customerId;
-						console.log("Customer ID set to:", customerId);
+						// console.log("Customer ID set to:", customerId);
 					}
 				}
 			}
@@ -277,6 +270,7 @@
 											console.error("Error:", data.error);
 										} else {
 											// Update the fields with the returned data
+											console.log(data)
 											row.querySelector(".item-subtotal").value = data.subtotal;
 											row.querySelector(".item-tax").value = data.tax;
 											row.querySelector(".item-total").value = data.total;
