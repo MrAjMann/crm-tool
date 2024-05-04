@@ -13,15 +13,16 @@ import (
 )
 
 type InvoiceHandler struct {
-	repo *repository.InvoiceRepository
-	tmpl *template.Template
+	repo            *repository.InvoiceRepository
+	tmpl            *template.Template
+	customerHandler *CustomerHandler
 }
 
 type InvoiceData struct {
 	Invoices []model.Invoice
 }
 
-func NewInvoiceHandler(repo *repository.InvoiceRepository, tmpl *template.Template) *InvoiceHandler {
+func NewInvoiceHandler(repo *repository.InvoiceRepository, tmpl *template.Template, customerHandler *CustomerHandler) *InvoiceHandler {
 	return &InvoiceHandler{repo: repo, tmpl: tmpl}
 }
 
@@ -106,15 +107,14 @@ func (h *InvoiceHandler) AddNewInvoice(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	address := model.Address{
-		UnitNumber:   "",
-		StreetNumber: "",
-		StreetName:   "123 Main St",
-		City:         "Anytown",
-		State:        "NY",
-		Postcode:     "12345",
-	}
 
+	customerAddress, err := h.customerHandler.CheckAddress(customerId)
+	if err != nil {
+		log.Printf("Database error on fetching address: %v\n", err)
+		http.Error(w, "Database error on fetching address", http.StatusInternalServerError)
+		return
+	}
+	log.Printf("Deleted customer: %+v", customerAddress)
 	// Prepare data for template rendering
 	data := InvoiceData{
 		Invoices: []model.Invoice{
@@ -129,12 +129,12 @@ func (h *InvoiceHandler) AddNewInvoice(w http.ResponseWriter, r *http.Request) {
 				CustomerPhone:   invoice.CustomerPhone,
 				CustomerEmail:   invoice.CustomerEmail,
 				PaymentStatus:   model.PaymentStatus(paymentStatusInt),
-				CustomerAddress: address,
+				CustomerAddress: *customerAddress,
 				ItemList:        []model.ItemList{},
 			},
 		},
 	}
-
+	log.Printf("Error executing template: %v\n", data)
 	// Execute the template
 	if err := h.tmpl.ExecuteTemplate(w, "invoice-list-element", data); err != nil {
 		log.Printf("Error executing template: %v\n", err)
@@ -180,7 +180,7 @@ func (h *InvoiceHandler) InvoiceCalculationHandler(w http.ResponseWriter, r *htt
 	tax := subtotal * 0.10 // 10% tax
 
 	total := subtotal + tax
-	log.Printf("Quantity: $%.2f, UnitPrice:$%.2f,Subtotal: $%.2f, Tax: $%.2f, Total: $%.2f", float64(quantity), float64(unitPrice), subtotal, tax, total)
+	// log.Printf("Quantity: $%.2f, UnitPrice:$%.2f,Subtotal: $%.2f, Tax: $%.2f, Total: $%.2f", float64(quantity), float64(unitPrice), subtotal, tax, total)
 
 	// Prepare HTML response
 	w.Header().Set("Content-Type", "application/json")

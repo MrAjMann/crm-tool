@@ -48,9 +48,9 @@ func (repo *CustomerRepository) AddCustomer(customer model.Customer) (string, er
 	return customerId, nil
 }
 
-func (repo *CustomerRepository) GetCustomerById(id string) (model.Customer, error) {
-	println(id)
-	var customer model.Customer
+func (repo *CustomerRepository) GetCustomerById(id int) (*model.Customer, error) {
+
+	customer := &model.Customer{}
 
 	query := `SELECT Id, FirstName, LastName, Email, Phone, CompanyName, Title, Website, Industry 
 						FROM customers

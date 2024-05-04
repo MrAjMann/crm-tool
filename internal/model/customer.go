@@ -14,7 +14,7 @@ type Customer struct {
 	Industry           string
 	InitialServiceType string
 	CurrentServiceType string
-	Address            Address
+	Address            *Address
 	Invoices           []Invoice
 	LeadId             int
 	Notes              []Note

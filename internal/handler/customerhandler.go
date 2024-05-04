@@ -22,6 +22,11 @@ func NewCustomerHandler(repo *repository.CustomerRepository, tmpl *template.Temp
 	return &CustomerHandler{repo: repo, tmpl: tmpl}
 }
 
+func httpError(w http.ResponseWriter, logMessage string, err error, statusCode int) {
+	log.Printf("%s: %v", logMessage, err)
+	http.Error(w, http.StatusText(statusCode), statusCode)
+}
+
 func (h *CustomerHandler) GetAllCustomers(w http.ResponseWriter, r *http.Request) {
 	customers, err := h.repo.GetAllCustomers()
 	if err != nil {
@@ -84,8 +89,8 @@ func (h *CustomerHandler) AddCustomer(w http.ResponseWriter, r *http.Request) {
 	// Assuming you want to redirect or display a success message
 	err = tmpl.ExecuteTemplate(w, "customer-list-element", model.Customer{Id: customerIdInt, FirstName: customer.FirstName, LastName: customer.LastName, Email: customer.Email, CompanyName: customer.CompanyName, Phone: customer.Phone})
 	if err != nil {
-		http.Error(w, "Error executing template", http.StatusInternalServerError)
-		log.Printf("Error executing template: %v\n", err)
+		httpError(w, "Error executing template", err, http.StatusInternalServerError)
+
 	}
 }
 
@@ -103,9 +108,13 @@ func (h *CustomerHandler) GetCustomer(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid customer ID", http.StatusBadRequest)
 		return
 	}
-
+	customerId, err := strconv.Atoi(idStr)
+	if err != nil {
+		http.Error(w, "Invalid customer ID", http.StatusBadRequest)
+		return
+	}
 	// Get the customer by id from the repository
-	customer, err := h.repo.GetCustomerById(idStr)
+	customer, err := h.repo.GetCustomerById(customerId)
 	if err != nil {
 		http.Error(w, "Database error on fetching customer", http.StatusInternalServerError)
 		log.Printf("Database error on fetching customer: %v\n", err)
@@ -267,4 +276,21 @@ func (h *CustomerHandler) HandleSessionStore(w http.ResponseWriter, r *http.Requ
 		log.Printf("Failed to write data: %v", err)
 		return // Only log here, as the client already got the "200 OK" response code
 	}
+}
+
+func (h *CustomerHandler) CheckAddress(customerId int) (*model.Address, error) {
+	if customerId < 0 {
+		return nil, fmt.Errorf("no customer ID provided")
+	}
+
+	customer, err := h.repo.GetCustomerById(customerId)
+	if err != nil {
+		return nil, err
+	}
+	if customer.Address == nil {
+		return nil, fmt.Errorf("address is nil")
+	}
+	log.Printf("Deleted customer: %+v", customer.Address)
+
+	return customer.Address, nil
 }

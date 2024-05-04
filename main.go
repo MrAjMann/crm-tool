@@ -80,7 +80,7 @@ func main() {
 	dashboardHandler := handler.NewDashboardHandler(sideBarTmpl)
 	customerHandler := handler.NewCustomerHandler(customerRepo, sideBarTmpl)
 	leadHandler := handler.NewLeadHandler(leadRepo, sideBarTmpl)
-	invoiceHandler := handler.NewInvoiceHandler(invoiceRepo, sideBarTmpl)
+	invoiceHandler := handler.NewInvoiceHandler(invoiceRepo, sideBarTmpl, customerHandler)
 
 	// Setup routes
 	// Handlers

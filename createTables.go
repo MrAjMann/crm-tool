@@ -113,6 +113,7 @@ func createOtherTables(db *sql.DB) error {
                     CompanyName TEXT,
                     Phone TEXT,
                     Title TEXT,
+                    Address TEXT,
                     Website TEXT,
                     Industry TEXT,
                     Source TEXT
@@ -182,6 +183,7 @@ func createOtherTables(db *sql.DB) error {
         BEGIN
             IF NOT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'address') THEN
                 CREATE TABLE address (
+                    CustomerId INTEGER NOT NULL,
                     UnitNumber TEXT,
                     StreetNumber TEXT,
                     StreetName TEXT,
