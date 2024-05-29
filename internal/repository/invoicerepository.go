@@ -3,8 +3,8 @@ package repository
 import (
 	"database/sql"
 	"fmt"
+	"log/slog"
 	"strconv"
-	"time"
 
 	"github.com/MrAjMann/crm/internal/model"
 )
@@ -15,6 +15,10 @@ type InvoiceRepository struct {
 
 func NewInvoiceRepository(db *sql.DB) *InvoiceRepository {
 	return &InvoiceRepository{db: db}
+}
+func (r *InvoiceRepository) BeginTransaction() (*sql.Tx, error) {
+	slog.Info("r Beginning transaction")
+	return r.db.Begin()
 }
 
 func (repo *InvoiceRepository) GetAllInvoices() ([]model.Invoice, error) {
@@ -34,11 +38,11 @@ func (repo *InvoiceRepository) GetAllInvoices() ([]model.Invoice, error) {
 		invoices = append(invoices, i)
 	}
 	return invoices, nil
-
 }
 
 func generateInvoiceId(lastId string) (string, error) {
 	// Assuming lastId is in the format "INV0001"
+	slog.Info("r Generating Invoice ID")
 	if lastId == "" {
 		return "INV0001", nil
 	}
@@ -51,47 +55,36 @@ func generateInvoiceId(lastId string) (string, error) {
 	return newId, nil
 }
 
-func (repo *InvoiceRepository) AddNewInvoice(invoice model.Invoice) (string, error) {
-	var lastInvoiceId string
-
-	// Fetch the last InvoiceId to generate the next one
-	err := repo.db.QueryRow("SELECT InvoiceId FROM invoices ORDER BY InvoiceId DESC LIMIT 1").Scan(&lastInvoiceId)
-	if err != nil && err != sql.ErrNoRows {
-		return "", fmt.Errorf("error fetching last invoice ID: %v", err)
-	}
-
-	// Generate new InvoiceId based on the last InvoiceId
-	newInvoiceId, err := generateInvoiceId(lastInvoiceId)
+func (r *InvoiceRepository) AddNewInvoice(tx *sql.Tx, invoice model.Invoice) (string, error) {
+	slog.Info("r Adding the Invoice")
+	invoiceId, err := generateInvoiceId(invoice.InvoiceId)
 	if err != nil {
 		return "", err
 	}
 
-	// Prepare the new invoice with the generated InvoiceId and current time
-	invoice.InvoiceId = newInvoiceId
-	invoice.InvoiceDate = time.Now() // Set the invoice date to now
-
-	// Perform the insert operation and return the newly created InvoiceId
-	err = repo.db.QueryRow(
-		"INSERT INTO invoices (InvoiceId, InvoiceNumber, InvoiceDate, DueDate, CustomerId, CustomerName, CompanyName, CustomerPhone, CustomerEmail, PaymentStatus) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING InvoiceId",
-		newInvoiceId,          // $1
-		invoice.InvoiceNumber, // $2 (Optionally generate this as well, if needed)
-		invoice.InvoiceDate,   // $3
-		invoice.DueDate,       // $4
-		invoice.CustomerId,    // $5
-		invoice.CustomerName,  // $6
-		invoice.CompanyName,   // $7
-		invoice.CustomerPhone, // $8
-		invoice.CustomerEmail, // $9
-		invoice.PaymentStatus, // $10
-	).Scan(&newInvoiceId)
+	_, err = tx.Exec(
+		`INSERT INTO invoices (InvoiceId, InvoiceNumber, InvoiceDate, DueDate, CustomerId, CustomerName, CompanyName, CustomerPhone, CustomerEmail, PaymentStatus)
+		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		invoiceId, invoice.InvoiceNumber, invoice.InvoiceDate, invoice.DueDate, invoice.CustomerId, invoice.CustomerName, invoice.CompanyName, invoice.CustomerPhone, invoice.CustomerEmail, invoice.PaymentStatus,
+	)
 	if err != nil {
-		return "", fmt.Errorf("error inserting new invoice: %v", err)
+		return "", err
 	}
+	return invoiceId, nil
+}
 
-	return newInvoiceId, nil
+func (r *InvoiceRepository) AddNewItem(tx *sql.Tx, item model.ItemList) error {
+	slog.Info("r Adding an item")
+	_, err := tx.Exec(
+		`INSERT INTO items (invoice_id, item, quantity, unit_price, subtotal, tax, total)
+		 VALUES (?, ?, ?, ?, ?, ?, ?)`,
+		item.InvoiceId, item.Item, item.Quantity, item.UnitPrice, item.Subtotal, item.Tax, item.Total,
+	)
+	return err
 }
 
 func GenerateInvoiceNumber(lastInvoiceNumber string) (string, error) {
+	slog.Info("r Generating Invoice Number")
 	if lastInvoiceNumber == "" {
 		return "INV0001", nil
 	}

@@ -34,7 +34,8 @@
 							id="invoiceForm"
 							class="space-y-6 px-12 mx-auto"
 							method="POST"
-							hx-post="/add-invoice/"
+							hx-post="/add-invoice"
+							action="/add-invoice"
 						>
 							<!-- Due Date above Customer Search -->
 							<div class="flex flex-col">
@@ -125,8 +126,7 @@
 													type="number"
 													name="quantity"
 													class="w-full px-3 py-1 border rounded-lg item-quantity"
-													hx-post="/calculate-invoice"
-													hx-trigger="keyup changed delay:2s"
+													
 												/>
 											</td>
 											<td class="px-5 py-5">
@@ -134,8 +134,7 @@
 													type="number"
 													name="unitPrice"
 													class="w-full px-3 py-1 border rounded-lg item-unitPrice"
-													hx-post="/calculate-invoice"
-													hx-trigger="keyup changed delay:3s"
+													
 												/>
 											</td>
 											<td class="px-5 py-5">
@@ -144,7 +143,7 @@
 													readonly
 													class="w-full px-3 py-1 border rounded-lg item-subtotal"
 													placeholder="Subtotal"
-													id="subtotal-field"
+													id="subtotal"
 												/>
 											</td>
 											<td class="px-5 py-5">
@@ -153,7 +152,7 @@
 													readonly
 													class="w-full px-3 py-1 border rounded-lg item-tax"
 													placeholder="Tax"
-													id="tax-field"
+													id="tax"
 												/>
 											</td>
 											<td class="px-5 py-5">
@@ -162,7 +161,7 @@
 													readonly
 													class="w-full px-3 py-1 border rounded-lg item-total"
 													placeholder="Total"
-													id="total-field"
+													id="total"
 													value=""
 												/>
 											</td>
@@ -177,12 +176,14 @@
 										</tr>
 									</tbody>
 								</table>
+								<input type="hidden" id="hidden-trigger" hx-post="/calculate-invoice" hx-trigger="revealed" hx-validate="#itemsSection" hx-swap="none" />
 							</div>
 
 							<!-- Submit and Close Buttons -->
 							<div class="flex justify-end space-x-4">
 								<button
 									type="submit"
+
 									class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-4 rounded"
 								>
 									Submit
@@ -241,48 +242,68 @@
 				}
 			}
 		</script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const itemsSection = document.querySelector("#itemsSection tbody");
 
-		<script>
-			document.addEventListener("DOMContentLoaded", function () {
-				const itemsSection = document.querySelector("#itemsSection tbody");
+        itemsSection.addEventListener("input", function () {
+            const rows = itemsSection.querySelectorAll("tr.item-row");
+            rows.forEach(row => {
+                const quantity = row.querySelector(".item-quantity").value.trim();
+                const unitPrice = row.querySelector(".item-unitPrice").value.trim();
+                if (quantity && unitPrice && !isNaN(quantity) && !isNaN(unitPrice) && quantity > 0 && unitPrice > 0) {
+                    document.getElementById("hidden-trigger").style.display = 'block';
+                } else {
+                    document.getElementById("hidden-trigger").style.display = 'none';
+                }
+            });
+        });
+    });
+</script>
 
-				itemsSection.addEventListener("keydown", function (event) {
-					if (event.target.classList.contains("item-unitPrice")) {
-						const key = event.key;
-						if (key === "Enter" || key === "Tab") {
-							const row = event.target.closest("tr");
-							const quantity = row.querySelector(".item-quantity").value;
-							const unitPrice = row.querySelector(".item-unitPrice").value;
 
-							if (quantity && unitPrice) {
-								event.preventDefault();
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const itemsSection = document.querySelector("#itemsSection tbody");
 
-								fetch("/calculate-invoice", {
-									method: "POST",
-									headers: {
-										"Content-Type": "application/x-www-form-urlencoded",
-									},
-									body: `quantity=${quantity}&unitPrice=${unitPrice}`,
-								})
-									.then((response) => response.json())
-									.then((data) => {
-										if (data.error) {
-											console.error("Error:", data.error);
-										} else {
-											// Update the fields with the returned data
-											console.log(data)
-											row.querySelector(".item-subtotal").value = data.subtotal;
-											row.querySelector(".item-tax").value = data.tax;
-											row.querySelector(".item-total").value = data.total;
-										}
-									})
-									.catch((error) => console.error("Fetch error:", error));
-							}
-						}
-					}
-				});
-			});
-		</script>
+        itemsSection.addEventListener("input", function () {
+            const rows = itemsSection.querySelectorAll("tr.item-row");
+            rows.forEach(row => {
+                const quantityInput = row.querySelector(".item-quantity");
+                const unitPriceInput = row.querySelector(".item-unitPrice");
+                const quantity = quantityInput.value.trim();
+                const unitPrice = unitPriceInput.value.trim();
+
+
+                if (quantity && unitPrice && !isNaN(quantity) && !isNaN(unitPrice) && quantity > 0 && unitPrice > 0) {
+                    // Send fetch request
+                    fetch("/calculate-invoice", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/x-www-form-urlencoded",
+                        },
+                        body: `quantity=${quantity}&unitPrice=${unitPrice}`,
+                    })
+                    .then((response) => response.json())
+                    .then((data) => {
+                        if (data.error) {
+                            console.error("Error:", data.error);
+                        } else {
+                            // Update the fields with the returned data
+                            row.querySelector(".item-subtotal").value = data.subtotal;
+                            row.querySelector(".item-tax").value = data.tax;
+                            row.querySelector(".item-total").value = data.total;
+                        }
+                    })
+                    .catch((error) => console.error("Fetch error:", error));
+                }
+            });
+        });
+    });
+</script>
+
+
+
 
 		<script>
 			document.addEventListener("DOMContentLoaded", function () {
