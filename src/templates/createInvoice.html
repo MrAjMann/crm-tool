@@ -1,336 +1,212 @@
 <!DOCTYPE html>
 <html lang="en">
-	<head>
-		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<link href="/css/output.css" rel="stylesheet" />
-		<link
-			rel="stylesheet"
-			href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
-		/>
-		<title>Data on the Downs - Create New Invoice</title>
-	</head>
-	<body class="flex bg-gray-100">
-		<div class="bg-gray-800 text-white space-y-6 py-7 px-2">
-			<!-- Sidebar content -->
-			{{template "sidebar.html"}}
-		</div>
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link href="/css/output.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <title>Data on the Downs - Create New Invoice</title>
+</head>
+<body class="flex bg-gray-100">
+    <div class="bg-gray-800 text-white space-y-6 py-7 px-2">
+        <!-- Sidebar content -->
+        {{template "sidebar.html"}}
+    </div>
 
-		<div class="flex-grow flex flex-col">
-			<!-- TopBar -->
-			<div class="bg-gray-800 text-white w-full">
-				<div
-					class="mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center"
-				>
-					<!-- <h1 class="text-lg font-semibold">Create Invoice</h1> -->
-				</div>
-			</div>
-			<div id="modal-container"></div>
-			<div class="flex-1">
-				<div class="container mx-auto p-4">
-					<h1 class="text-3xl font-semibold mb-4">Create Invoice</h1>
-					<div class="bg-white shadow-md rounded-lg p-3">
-						<form
-							id="invoiceForm"
-							class="space-y-6 px-12 mx-auto"
-							method="POST"
-							hx-post="/add-invoice"
-							action="/add-invoice"
-						>
-							<!-- Due Date above Customer Search -->
-							<div class="flex flex-col">
-								<label class="w-40 py-1 text-gray-800 font-medium" for="DueDate"
-									>Due Date:</label
-								>
-								<input
-									type="date"
-									name="DueDate"
-									id="invoice-DueDate"
-									class="w-40 px-4 py-1 border rounded-lg shadow-md"
-									placeholder="Due Date"
-									style="background-color: #f3f4f6; border: 1px solid #d1d5db"
-								/>
-							</div>
+    <div class="flex-grow flex flex-col">
+        <!-- TopBar -->
+        <div class="bg-gray-800 text-white w-full">
+            <div class="mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center"></div>
+        </div>
+        <div id="modal-container"></div>
+        <div class="flex-1">
+            <div class="container mx-auto p-4">
+                <h1 class="text-3xl font-semibold mb-4">Create Invoice</h1>
+                <div class="bg-white shadow-md rounded-lg p-3">
+                    <form id="invoiceForm" class="space-y-6 px-12 mx-auto" method="POST" hx-post="/add-invoice" action="/add-invoice">
+                        <!-- Due Date above Customer Search -->
+                        <div class="flex flex-col">
+                            <label class="w-40 py-1 text-gray-800 font-medium" for="DueDate">Due Date:</label>
+                            <input type="date" name="DueDate" id="invoice-DueDate" class="w-40 px-4 py-1 border rounded-lg shadow-md" placeholder="Due Date" style="background-color: #f3f4f6; border: 1px solid #d1d5db" />
+                        </div>
 
-							<div class="mb-4">
-								<label class="w-40 py-1 text-gray-800 font-medium" for="DueDate"
-									>Search Customers:</label
-								>
-								<div class="flex items-center space-x-3">
-									<input
-										type="text"
-										id="customerSearch"
-										class="text-gray-800 border w-full border-gray-200 outline-gray-400 shadow-md rounded-lg p-3"
-										placeholder="Start typing to search for a customer..."
-										hx-get="/search-customers"
-										hx-trigger="keyup changed"
-										hx-target="#customerSearchResults"
-										hx-swap="innerHTML"
-										hx-params="search"
-										name="search"
-									/>
-									<button
-										type="text"
-										id="add-customer"
-										hx-get="/create-customer-modal"
-										hx-trigger="click"
-										hx-target="#modal-container"
-										hx-swap="innerHTML"
-										class="mx-auto inline-flex items-center px-4 py-2 flex-nowrap justify-center items-center-center bg-green-500 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-wide hover:bg-green-600 active:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition ease-in-out duration-150"
-									>
-										<i class="fas fa-user-plus mr-2 fa-lg"></i> Add Customer
-									</button>
-								</div>
-								<div
-									id="customerSearchResults"
-									onclick="selectCustomer(event)"
-								></div>
-								<input
-									type="hidden"
-									name="customerId"
-									id="customerId"
-									value=""
-								/>
+                        <div class="mb-4">
+                            <label class="w-40 py-1 text-gray-800 font-medium" for="DueDate">Search Customers:</label>
+                            <div class="flex items-center space-x-3">
+                                <input type="text" id="customerSearch" class="text-gray-800 border w-full border-gray-200 outline-gray-400 shadow-md rounded-lg p-3" placeholder="Start typing to search for a customer..." hx-get="/search-customers" hx-trigger="keyup changed" hx-target="#customerSearchResults" hx-swap="innerHTML" hx-params="search" name="search" />
+                                <button type="text" id="add-customer" hx-get="/create-customer-modal" hx-trigger="click" hx-target="#modal-container" hx-swap="innerHTML" class="mx-auto inline-flex items-center px-4 py-2 flex-nowrap justify-center items-center-center bg-green-500 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-wide hover:bg-green-600 active:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                                    <i class="fas fa-user-plus mr-2 fa-lg"></i> Add Customer
+                                </button>
+                            </div>
+                            <div id="customerSearchResults" onclick="selectCustomer(event)"></div>
+                            <input type="hidden" name="customerId" id="customerId" value="" />
 
-								<div id="modal-container" class="overlay"></div>
-							</div>
+                            <div id="modal-container" class="overlay"></div>
+                        </div>
 
-							<!-- Items Section -->
-							<div id="itemsSection" class="shadow-md rounded-lg p-4">
-								<table class="min-w-full leading-normal">
-									<thead>
-										<tr
-											class="text-left text-sm font-semibold tracking-wider border-b border-gray-200"
-										>
-											<th class="px-5 py-3">Item</th>
-											<th class="px-5 py-3">Quantity</th>
-											<th class="px-5 py-3">Unit Price</th>
-											<th class="px-5 py-3">Subtotal</th>
-											<th class="px-5 py-3">Tax</th>
-											<th class="px-5 py-3">Total</th>
-											<th class="px-5 py-3">Action</th>
-										</tr>
-									</thead>
-									<tbody>
-										<tr class="item-row bg-gray-100 border-b">
-											<td class="px-5 py-5">
-												<input
-													type="text"
-													name="item"
-													class="w-full px-3 py-1 border rounded-lg item-name"
-													placeholder="Item"
-												/>
-											</td>
-											<td class="px-5 py-5">
-												<input
-													type="number"
-													name="quantity"
-													class="w-full px-3 py-1 border rounded-lg item-quantity"
-													
-												/>
-											</td>
-											<td class="px-5 py-5">
-												<input
-													type="number"
-													name="unitPrice"
-													class="w-full px-3 py-1 border rounded-lg item-unitPrice"
-													
-												/>
-											</td>
-											<td class="px-5 py-5">
-												<input
-													type="number"
-													readonly
-													class="w-full px-3 py-1 border rounded-lg item-subtotal"
-													placeholder="Subtotal"
-													id="subtotal"
-												/>
-											</td>
-											<td class="px-5 py-5">
-												<input
-													type="number"
-													readonly
-													class="w-full px-3 py-1 border rounded-lg item-tax"
-													placeholder="Tax"
-													id="tax"
-												/>
-											</td>
-											<td class="px-5 py-5">
-												<input
-													type="number"
-													readonly
-													class="w-full px-3 py-1 border rounded-lg item-total"
-													placeholder="Total"
-													id="total"
-													value=""
-												/>
-											</td>
-											<td class="px-5 py-5">
-												<button
-													type="button"
-													class="add-item-btn bg-green-500 hover:bg-green-700 text-white font-bold py-1 px-4 rounded"
-												>
-													<i class="fas fa-plus"></i>
-												</button>
-											</td>
-										</tr>
-									</tbody>
-								</table>
-								<input type="hidden" id="hidden-trigger" hx-post="/calculate-invoice" hx-trigger="revealed" hx-validate="#itemsSection" hx-swap="none" />
-							</div>
+                        <!-- Items Section -->
+                        <div id="itemsSection" class="shadow-md rounded-lg p-4">
+                            <table class="min-w-full leading-normal">
+                                <thead>
+                                    <tr class="text-left text-sm font-semibold tracking-wider border-b border-gray-200">
+                                        <th class="px-5 py-3">Item</th>
+                                        <th class="px-5 py-3">Quantity</th>
+                                        <th class="px-5 py-3">Unit Price</th>
+                                        <th class="px-5 py-3">Subtotal</th>
+                                        <th class="px-5 py-3">Tax</th>
+                                        <th class="px-5 py-3">Total</th>
+                                        <th class="px-5 py-3">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="item-row bg-gray-100 border-b">
+                                        <td class="px-5 py-5">
+                                            <input type="text" name="item" class="w-full px-3 py-1 border rounded-lg item-name" placeholder="Item" />
+                                        </td>
+                                        <td class="px-5 py-5">
+                                            <input type="number" name="quantity" class="w-full px-3 py-1 border rounded-lg item-quantity" />
+                                        </td>
+                                        <td class="px-5 py-5">
+                                            <input type="number" step="0.01" name="unitPrice" class="w-full px-3 py-1 border rounded-lg item-unitPrice" />
+                                        </td>
+                                        <td class="px-5 py-5">
+                                            <input type="number" step="0.01" readonly class="w-full px-3 py-1 border rounded-lg item-subtotal" name="subtotal" placeholder="Subtotal" />
+                                        </td>
+                                        <td class="px-5 py-5">
+                                            <input type="number" step="0.01" readonly class="w-full px-3 py-1 border rounded-lg item-tax" name="tax" placeholder="Tax" />
+                                        </td>
+                                        <td class="px-5 py-5">
+                                            <input type="number" step="0.01" readonly class="w-full px-3 py-1 border rounded-lg item-total" name="total" placeholder="Total" />
+                                        </td>
+                                        <td class="px-5 py-5">
+                                            <button type="button" class="add-item-btn bg-green-500 hover:bg-green-700 text-white font-bold py-1 px-4 rounded">
+                                                <i class="fas fa-plus"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
 
-							<!-- Submit and Close Buttons -->
-							<div class="flex justify-end space-x-4">
-								<button
-									type="submit"
+                        <!-- Submit and Close Buttons -->
+                        <div class="flex justify-end space-x-4">
+                            <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-4 rounded">
+                                Submit
+                            </button>
+                            <button type="button" onclick="closeModal()" class="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-4 rounded">
+                                Cancel
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 
-									class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-4 rounded"
-								>
-									Submit
-								</button>
-								<button
-									type="button"
-									onclick="closeModal()"
-									class="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-4 rounded"
-								>
-									Cancel
-								</button>
-							</div>
-						</form>
-					</div>
-				</div>
-			</div>
-		</div>
+    <script src="https://unpkg.com/htmx.org"></script>
 
-		<script src="https://unpkg.com/htmx.org"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const form = document.getElementById("invoiceForm");
 
-
-		<script>
-			document.addEventListener("DOMContentLoaded", function () {
-				const form = document.getElementById("invoiceForm");
-
-				form.addEventListener("htmx:configRequest", function (event) {
-					const customerId = document.getElementById("customerId").value;
-					if (event.detail.parameters instanceof URLSearchParams) {
-						event.detail.parameters.set("customerId", customerId);
-					} else {
-						event.detail.parameters.customerId = customerId;
-					}
-
-					const formData = new FormData(form);
-					const data = {};
-					formData.forEach(function (value, key) {
-						// console.log(data[key]);
-						data[key] = value;
-					});
-					data["customerId"] = customerId; // Ensure customer ID is logged
-
-					
-				});
-			});
-		</script>
-
-		<script>
-			function selectCustomer(event) {
-				const customerItem = event.target.closest(".customer-item");
-				if (customerItem) {
-					const customerId = customerItem.getAttribute("data-customer-id");
-					if (customerId) {
-						document.getElementById("customerId").value = customerId;
-						// console.log("Customer ID set to:", customerId);
-					}
-				}
-			}
-		</script>
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const itemsSection = document.querySelector("#itemsSection tbody");
-
-        itemsSection.addEventListener("input", function () {
-            const rows = itemsSection.querySelectorAll("tr.item-row");
-            rows.forEach(row => {
-                const quantity = row.querySelector(".item-quantity").value.trim();
-                const unitPrice = row.querySelector(".item-unitPrice").value.trim();
-                if (quantity && unitPrice && !isNaN(quantity) && !isNaN(unitPrice) && quantity > 0 && unitPrice > 0) {
-                    document.getElementById("hidden-trigger").style.display = 'block';
+            form.addEventListener("htmx:configRequest", function (event) {
+                const customerId = document.getElementById("customerId").value;
+                if (event.detail.parameters instanceof URLSearchParams) {
+                    event.detail.parameters.set("customerId", customerId);
                 } else {
-                    document.getElementById("hidden-trigger").style.display = 'none';
+                    event.detail.parameters.customerId = customerId;
+                }
+
+                const formData = new FormData(form);
+                const data = {};
+                formData.forEach(function (value, key) {
+                    // console.log(data[key]);
+                    data[key] = value;
+                });
+                data["customerId"] = customerId; // Ensure customer ID is logged
+            });
+        });
+
+        function addItem() {
+            const table = document.querySelector("#itemsSection tbody");
+            const row = document.createElement("tr");
+
+            row.innerHTML = `
+                <td><input type="text" name="item" required></td>
+                <td><input type="number" name="quantity" required></td>
+                <td><input type="number" step="0.01" name="unitPrice" required></td>
+                <td><input type="number" step="0.01" name="subtotal" readonly></td>
+                <td><input type="number" step="0.01" name="tax" readonly></td>
+                <td><input type="number" step="0.01" name="total" readonly></td>
+                <td><button type="button" class="delete-item-btn bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-4 rounded"><i class="fas fa-trash"></i></button></td>
+            `;
+
+            table.appendChild(row);
+        }
+
+        function selectCustomer(event) {
+            const customerItem = event.target.closest(".customer-item");
+            if (customerItem) {
+                const customerId = customerItem.getAttribute("data-customer-id");
+                if (customerId) {
+                    document.getElementById("customerId").value = customerId;
+                }
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            const itemsSection = document.querySelector("#itemsSection tbody");
+
+            itemsSection.addEventListener("input", function () {
+                const rows = itemsSection.querySelectorAll("tr.item-row");
+                rows.forEach(row => {
+                    const quantityInput = row.querySelector(".item-quantity");
+                    const unitPriceInput = row.querySelector(".item-unitPrice");
+                    const quantity = parseFloat(quantityInput.value);
+                    const unitPrice = parseFloat(unitPriceInput.value);
+
+                    if (!isNaN(quantity) && !isNaN(unitPrice) && quantity > 0 && unitPrice > 0) {
+                        const subtotal = quantity * unitPrice;
+                        const tax = subtotal * 0.10; // Assuming a 10% tax rate
+                        const total = subtotal + tax;
+
+                        row.querySelector(".item-subtotal").value = subtotal.toFixed(2);
+                        row.querySelector(".item-tax").value = tax.toFixed(2);
+                        row.querySelector(".item-total").value = total.toFixed(2);
+                    } else {
+                        row.querySelector(".item-subtotal").value = "";
+                        row.querySelector(".item-tax").value = "";
+                        row.querySelector(".item-total").value = "";
+                    }
+                });
+            });
+        });
+
+        document.addEventListener("DOMContentLoaded", function () {
+            const itemsSection = document.querySelector("#itemsSection tbody");
+
+            document.addEventListener("click", function (event) {
+                if (event.target.closest(".add-item-btn")) {
+                    const dataEntryRow = event.target.closest("tr");
+                    const clone = dataEntryRow.cloneNode(true);
+
+                    dataEntryRow.querySelectorAll("input").forEach((input, index) => {
+                        clone.querySelectorAll("input")[index].value = input.value;
+                        input.value = "";
+                    });
+
+                    const addBtn = clone.querySelector(".add-item-btn");
+                    addBtn.className =
+                        "delete-item-btn bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-4 rounded";
+                    addBtn.innerHTML = '<i class="fas fa-trash"></i>';
+
+                    itemsSection.appendChild(clone);
+                } else if (event.target.closest(".delete-item-btn")) {
+                    const row = event.target.closest("tr");
+                    row.remove();
                 }
             });
         });
-    });
-</script>
-
-
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const itemsSection = document.querySelector("#itemsSection tbody");
-
-        itemsSection.addEventListener("input", function () {
-            const rows = itemsSection.querySelectorAll("tr.item-row");
-            rows.forEach(row => {
-                const quantityInput = row.querySelector(".item-quantity");
-                const unitPriceInput = row.querySelector(".item-unitPrice");
-                const quantity = quantityInput.value.trim();
-                const unitPrice = unitPriceInput.value.trim();
-
-
-                if (quantity && unitPrice && !isNaN(quantity) && !isNaN(unitPrice) && quantity > 0 && unitPrice > 0) {
-                    // Send fetch request
-                    fetch("/calculate-invoice", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/x-www-form-urlencoded",
-                        },
-                        body: `quantity=${quantity}&unitPrice=${unitPrice}`,
-                    })
-                    .then((response) => response.json())
-                    .then((data) => {
-                        if (data.error) {
-                            console.error("Error:", data.error);
-                        } else {
-                            // Update the fields with the returned data
-                            row.querySelector(".item-subtotal").value = data.subtotal;
-                            row.querySelector(".item-tax").value = data.tax;
-                            row.querySelector(".item-total").value = data.total;
-                        }
-                    })
-                    .catch((error) => console.error("Fetch error:", error));
-                }
-            });
-        });
-    });
-</script>
-
-
-
-
-		<script>
-			document.addEventListener("DOMContentLoaded", function () {
-				const itemsSection = document.querySelector("#itemsSection tbody");
-
-				document.addEventListener("click", function (event) {
-					if (event.target.closest(".add-item-btn")) {
-						const dataEntryRow = event.target.closest("tr");
-						const clone = dataEntryRow.cloneNode(true);
-
-						dataEntryRow.querySelectorAll("input").forEach((input, index) => {
-							clone.querySelectorAll("input")[index].value = input.value;
-							input.value = "";
-						});
-
-						const addBtn = clone.querySelector(".add-item-btn");
-						addBtn.className =
-							"delete-item-btn bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-4 rounded";
-						addBtn.innerHTML = '<i class="fas fa-trash"></i>';
-
-						itemsSection.appendChild(clone);
-					} else if (event.target.closest(".delete-item-btn")) {
-						const row = event.target.closest("tr");
-						row.remove();
-					}
-				});
-			});
-		</script>
-	</body>
+    </script>
+</body>
 </html>

@@ -3,6 +3,7 @@ package repository
 import (
 	"database/sql"
 	"fmt"
+	"log"
 	"log/slog"
 	"strconv"
 
@@ -57,29 +58,52 @@ func generateInvoiceId(lastId string) (string, error) {
 
 func (r *InvoiceRepository) AddNewInvoice(tx *sql.Tx, invoice model.Invoice) (string, error) {
 	slog.Info("r Adding the Invoice")
+
+	// Generate invoice ID
 	invoiceId, err := generateInvoiceId(invoice.InvoiceId)
 	if err != nil {
 		return "", err
 	}
 
+	// PostgreSQL query with numbered placeholders
+	query := `
+        INSERT INTO invoices (InvoiceId, InvoiceNumber, InvoiceDate, DueDate, CustomerId, CustomerName, CompanyName, CustomerPhone, CustomerEmail, PaymentStatus)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`
+
+	log.Printf("Executing query: %s\n", query)
+	log.Printf("With parameters: InvoiceId=%s, InvoiceNumber=%s, InvoiceDate=%s, DueDate=%s, CustomerId=%d, CustomerName=%s, CompanyName=%s, CustomerPhone=%s, CustomerEmail=%s, PaymentStatus=%d",
+		invoiceId, invoice.InvoiceNumber, invoice.InvoiceDate, invoice.DueDate, invoice.CustomerId, invoice.CustomerName, invoice.CompanyName, invoice.CustomerPhone, invoice.CustomerEmail, invoice.PaymentStatus)
+
+	// Execute the query
 	_, err = tx.Exec(
-		`INSERT INTO invoices (InvoiceId, InvoiceNumber, InvoiceDate, DueDate, CustomerId, CustomerName, CompanyName, CustomerPhone, CustomerEmail, PaymentStatus)
-		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		query,
 		invoiceId, invoice.InvoiceNumber, invoice.InvoiceDate, invoice.DueDate, invoice.CustomerId, invoice.CustomerName, invoice.CompanyName, invoice.CustomerPhone, invoice.CustomerEmail, invoice.PaymentStatus,
 	)
 	if err != nil {
 		return "", err
 	}
+
 	return invoiceId, nil
 }
 
 func (r *InvoiceRepository) AddNewItem(tx *sql.Tx, item model.ItemList) error {
 	slog.Info("r Adding an item")
+
+	query := `
+        INSERT INTO item_lists (invoiceid, item, quantity, unitprice, subtotal, tax, total)
+        VALUES ($1, $2, $3, $4, $5, $6, $7)`
+
+	log.Printf("Executing query: %s\n", query)
+	log.Printf("With parameters: invoiceid=%s, item=%s, quantity=%d, unit_price=%f, subtotal=%f, tax=%f, total=%f",
+		item.InvoiceId, item.Item, item.Quantity, item.UnitPrice, item.Subtotal, item.Tax, item.Total)
+
 	_, err := tx.Exec(
-		`INSERT INTO items (invoice_id, item, quantity, unit_price, subtotal, tax, total)
-		 VALUES (?, ?, ?, ?, ?, ?, ?)`,
+		query,
 		item.InvoiceId, item.Item, item.Quantity, item.UnitPrice, item.Subtotal, item.Tax, item.Total,
 	)
+	if err != nil {
+		log.Printf("Database error on adding new item: %v\n", err)
+	}
 	return err
 }
 

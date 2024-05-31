@@ -1,0 +1,25 @@
+{{define "pdfmodal"}}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Invoice Created</title>
+    <link href="/css/output.css" rel="stylesheet">
+</head>
+<body>
+    <div class="modal">
+        <div class="modal-content">
+            <h2>Invoice Created</h2>
+            <p>Do you want to generate a PDF?</p>
+            <form method="POST" action="/generate-pdf">
+                <input type="hidden" name="invoiceId" value="{{.InvoiceId}}">
+                <button type="submit">Yes</button>
+            </form>
+            <form method="GET" action="/invoices">
+                <button type="submit">No</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>
+{{end}}

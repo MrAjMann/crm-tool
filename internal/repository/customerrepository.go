@@ -17,7 +17,7 @@ func NewCustomerRepository(db *sql.DB) *CustomerRepository {
 	return &CustomerRepository{db: db}
 }
 
-// Example function to fetch all customers
+// Fetch all customers
 func (repo *CustomerRepository) GetAllCustomers() ([]model.Customer, error) {
 	rows, err := repo.db.Query("SELECT Id, FirstName, LastName, Email ,Phone, CompanyName, Title, Website, Industry FROM customers")
 	if err != nil {
@@ -40,8 +40,8 @@ func (repo *CustomerRepository) GetAllCustomers() ([]model.Customer, error) {
 // AddCustomer inserts a new customer into the database
 func (repo *CustomerRepository) AddCustomer(customer model.Customer) (string, error) {
 	var customerId string
-	err := repo.db.QueryRow("INSERT INTO customers (FirstName, LastName, Email, Phone, CompanyName, Title, Website, Industry) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING Id",
-		customer.FirstName, customer.LastName, customer.Email, customer.Phone, customer.CompanyName, customer.Title, customer.Website, customer.Industry).Scan(&customerId)
+	err := repo.db.QueryRow("INSERT INTO customers (FirstName, LastName, Email, Phone, Address, CompanyName, Title, Website, Industry) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING Id",
+		customer.FirstName, customer.LastName, customer.Email, customer.Phone, customer.Address, customer.CompanyName, customer.Title, customer.Website, customer.Industry).Scan(&customerId)
 	if err != nil {
 		return "", err
 	}
@@ -52,7 +52,7 @@ func (repo *CustomerRepository) GetCustomerById(id int) (*model.Customer, error)
 
 	customer := &model.Customer{}
 
-	query := `SELECT Id, FirstName, LastName, Email, Phone, CompanyName, Title, Website, Industry 
+	query := `SELECT Id, FirstName, LastName, Email, Phone, Address, CompanyName, Title, Website, Industry 
 						FROM customers
 						WHERE Id = $1`
 
@@ -62,6 +62,7 @@ func (repo *CustomerRepository) GetCustomerById(id int) (*model.Customer, error)
 		&customer.LastName,
 		&customer.Email,
 		&customer.Phone,
+		&customer.Address,
 		&customer.CompanyName,
 		&customer.Title,
 		&customer.Website,

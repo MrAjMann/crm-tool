@@ -19,7 +19,10 @@ type CustomerHandler struct {
 }
 
 func NewCustomerHandler(repo *repository.CustomerRepository, tmpl *template.Template) *CustomerHandler {
-	return &CustomerHandler{repo: repo, tmpl: tmpl}
+	return &CustomerHandler{
+		repo: repo,
+		tmpl: tmpl,
+	}
 }
 
 func httpError(w http.ResponseWriter, logMessage string, err error, statusCode int) {
@@ -86,7 +89,7 @@ func (h *CustomerHandler) AddCustomer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Assuming you want to redirect or display a success message
+	// Redirect or display a success message
 	err = tmpl.ExecuteTemplate(w, "customer-list-element", model.Customer{Id: customerIdInt, FirstName: customer.FirstName, LastName: customer.LastName, Email: customer.Email, CompanyName: customer.CompanyName, Phone: customer.Phone})
 	if err != nil {
 		httpError(w, "Error executing template", err, http.StatusInternalServerError)
@@ -95,7 +98,7 @@ func (h *CustomerHandler) AddCustomer(w http.ResponseWriter, r *http.Request) {
 }
 
 // Get a Customer
-func (h *CustomerHandler) GetCustomer(w http.ResponseWriter, r *http.Request) {
+func (h *CustomerHandler) GetCustomerById(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return

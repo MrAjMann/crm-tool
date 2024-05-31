@@ -24,10 +24,10 @@ type ItemList struct {
 	InvoiceId string
 	Item      string
 	Quantity  int32
-	UnitPrice int32
-	Subtotal  int32
-	Tax       int32
-	Total     int32
+	UnitPrice float32
+	Subtotal  float32
+	Tax       float32
+	Total     float32
 }
 
 type PaymentStatus int

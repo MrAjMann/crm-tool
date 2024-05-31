@@ -62,20 +62,14 @@ func main() {
 		log.Fatal(err)
 	}
 
-	customerRepo := repository.NewCustomerRepository(db)
-	if customerRepo == nil {
-		println("Creating customers table")
-	}
+	// customerRepo := repository.NewCustomerRepository(db)
+	// if customerRepo == nil {
+	// 	println("Creating customers table")
+	// }
 
 	leadRepo := repository.NewLeadRepository(db)
-	if leadRepo == nil {
-		println("Creating customers table")
-	}
-
+	customerRepo := repository.NewCustomerRepository(db)
 	invoiceRepo := repository.NewInvoiceRepository(db)
-	if invoiceRepo == nil {
-		println("Creating customers table")
-	}
 
 	dashboardHandler := handler.NewDashboardHandler(sideBarTmpl)
 	customerHandler := handler.NewCustomerHandler(customerRepo, sideBarTmpl)
@@ -96,7 +90,7 @@ func main() {
 
 	// Customer Routes
 	http.HandleFunc("/customers", customerHandler.GetAllCustomers)              // Customers page
-	http.HandleFunc("/customer/", customerHandler.GetCustomer)                  // Handle getting a customer
+	http.HandleFunc("/customer/", customerHandler.GetCustomerById)              // Handle getting a customer
 	http.HandleFunc("/add-customer/", customerHandler.AddCustomer)              // Handle adding a customer
 	http.HandleFunc("/search-customers", customerHandler.HandleSearchCustomers) // Handle searching for a customer
 	http.HandleFunc("/customer/delete/", customerHandler.DeleteCustomer)        // Handle searching for a customer
@@ -110,6 +104,9 @@ func main() {
 	http.HandleFunc("/invoices", invoiceHandler.GetAllInvoices)
 	http.HandleFunc("/add-invoice", invoiceHandler.AddNewInvoice)
 	http.HandleFunc("/calculate-invoice", invoiceHandler.InvoiceCalculationHandler)
+
+	// PDF GEN
+	http.HandleFunc("/generate-pdf", invoiceHandler.GeneratePDF)
 
 	// Session Routes
 	http.HandleFunc("/customer-session", customerHandler.HandleSessionStore)
