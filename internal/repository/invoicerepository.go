@@ -41,9 +41,21 @@ func (repo *InvoiceRepository) GetAllInvoices() ([]model.Invoice, error) {
 	return invoices, nil
 }
 
-func generateInvoiceId(lastId string) (string, error) {
-	// Assuming lastId is in the format "INV0001"
-	slog.Info("r Generating Invoice ID")
+func (r *InvoiceRepository) GetLastInvoiceId() (string, error) {
+	var lastInvoiceId string
+	query := `SELECT InvoiceId FROM invoices ORDER BY InvoiceId DESC LIMIT 1`
+
+	err := r.db.QueryRow(query).Scan(&lastInvoiceId)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return "", nil // No rows found, meaning this will be the first invoice
+		}
+		return "", err
+	}
+	return lastInvoiceId, nil
+}
+
+func (r *InvoiceRepository) generateInvoiceId(lastId string) (string, error) {
 	if lastId == "" {
 		return "INV0001", nil
 	}
@@ -60,10 +72,15 @@ func (r *InvoiceRepository) AddNewInvoice(tx *sql.Tx, invoice model.Invoice) (st
 	slog.Info("r Adding the Invoice")
 
 	// Generate invoice ID
-	invoiceId, err := generateInvoiceId(invoice.InvoiceId)
+	lastInvoiceId, err := r.GetLastInvoiceId()
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("error fetching last invoice ID: %v", err)
 	}
+	newInvoiceId, err := r.generateInvoiceId(lastInvoiceId)
+	if err != nil {
+		return "", fmt.Errorf("error generating new invoice ID: %v", err)
+	}
+	invoice.InvoiceId = newInvoiceId
 
 	// PostgreSQL query with numbered placeholders
 	query := `
@@ -72,18 +89,18 @@ func (r *InvoiceRepository) AddNewInvoice(tx *sql.Tx, invoice model.Invoice) (st
 
 	log.Printf("Executing query: %s\n", query)
 	log.Printf("With parameters: InvoiceId=%s, InvoiceNumber=%s, InvoiceDate=%s, DueDate=%s, CustomerId=%d, CustomerName=%s, CompanyName=%s, CustomerPhone=%s, CustomerEmail=%s, PaymentStatus=%d",
-		invoiceId, invoice.InvoiceNumber, invoice.InvoiceDate, invoice.DueDate, invoice.CustomerId, invoice.CustomerName, invoice.CompanyName, invoice.CustomerPhone, invoice.CustomerEmail, invoice.PaymentStatus)
+		newInvoiceId, invoice.InvoiceNumber, invoice.InvoiceDate, invoice.DueDate, invoice.CustomerId, invoice.CustomerName, invoice.CompanyName, invoice.CustomerPhone, invoice.CustomerEmail, invoice.PaymentStatus)
 
 	// Execute the query
 	_, err = tx.Exec(
 		query,
-		invoiceId, invoice.InvoiceNumber, invoice.InvoiceDate, invoice.DueDate, invoice.CustomerId, invoice.CustomerName, invoice.CompanyName, invoice.CustomerPhone, invoice.CustomerEmail, invoice.PaymentStatus,
+		invoice.InvoiceId, invoice.InvoiceNumber, invoice.InvoiceDate, invoice.DueDate, invoice.CustomerId, invoice.CustomerName, invoice.CompanyName, invoice.CustomerPhone, invoice.CustomerEmail, invoice.PaymentStatus,
 	)
 	if err != nil {
 		return "", err
 	}
 
-	return invoiceId, nil
+	return invoice.InvoiceId, nil
 }
 
 func (r *InvoiceRepository) AddNewItem(tx *sql.Tx, item model.ItemList) error {
@@ -105,6 +122,46 @@ func (r *InvoiceRepository) AddNewItem(tx *sql.Tx, item model.ItemList) error {
 		log.Printf("Database error on adding new item: %v\n", err)
 	}
 	return err
+}
+
+func (r *InvoiceRepository) GetInvoiceById(invoiceId string) (*model.Invoice, error) {
+	query := `
+        SELECT InvoiceId, InvoiceNumber, InvoiceDate, DueDate, CustomerId, CustomerName, CompanyName, CustomerPhone, CustomerEmail, PaymentStatus
+        FROM invoices
+        WHERE InvoiceId = $1`
+
+	row := r.db.QueryRow(query, invoiceId)
+
+	var invoice model.Invoice
+	err := row.Scan(&invoice.InvoiceId, &invoice.InvoiceNumber, &invoice.InvoiceDate, &invoice.DueDate, &invoice.CustomerId, &invoice.CustomerName, &invoice.CompanyName, &invoice.CustomerPhone, &invoice.CustomerEmail, &invoice.PaymentStatus)
+	if err != nil {
+		return nil, err
+	}
+
+	// Fetch items related to this invoice
+	itemsQuery := `
+        SELECT invoiceid, item, quantity, unitprice, subtotal, tax, total
+        FROM item_lists
+        WHERE invoiceid = $1`
+
+	rows, err := r.db.Query(itemsQuery, invoiceId)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var items []model.ItemList
+	for rows.Next() {
+		var item model.ItemList
+		err := rows.Scan(&item.InvoiceId, &item.Item, &item.Quantity, &item.UnitPrice, &item.Subtotal, &item.Tax, &item.Total)
+		if err != nil {
+			return nil, err
+		}
+		items = append(items, item)
+	}
+	invoice.ItemList = items
+
+	return &invoice, nil
 }
 
 func GenerateInvoiceNumber(lastInvoiceNumber string) (string, error) {

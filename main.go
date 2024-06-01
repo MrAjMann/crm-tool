@@ -48,16 +48,16 @@ func main() {
 
 	// Templates
 	// Parse templates
-	sideBarTmpl, err := template.ParseGlob("src/templates/*.html")
+	tmpl, err := template.ParseGlob("src/templates/*.html")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	sideBarTmpl, err = sideBarTmpl.ParseGlob("src/templates/navigation/*.html")
+	tmpl, err = tmpl.ParseGlob("src/templates/navigation/*.html")
 	if err != nil {
 		log.Fatal(err)
 	}
-	sideBarTmpl, err = sideBarTmpl.ParseGlob("src/templates/modals/*.html")
+	tmpl, err = tmpl.ParseGlob("src/templates/modals/*.html")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -71,10 +71,10 @@ func main() {
 	customerRepo := repository.NewCustomerRepository(db)
 	invoiceRepo := repository.NewInvoiceRepository(db)
 
-	dashboardHandler := handler.NewDashboardHandler(sideBarTmpl)
-	customerHandler := handler.NewCustomerHandler(customerRepo, sideBarTmpl)
-	leadHandler := handler.NewLeadHandler(leadRepo, sideBarTmpl)
-	invoiceHandler := handler.NewInvoiceHandler(invoiceRepo, sideBarTmpl, customerHandler)
+	dashboardHandler := handler.NewDashboardHandler(tmpl)
+	customerHandler := handler.NewCustomerHandler(customerRepo, tmpl)
+	leadHandler := handler.NewLeadHandler(leadRepo, tmpl)
+	invoiceHandler := handler.NewInvoiceHandler(invoiceRepo, tmpl, customerHandler)
 
 	// Setup routes
 	// Handlers
@@ -106,7 +106,7 @@ func main() {
 	http.HandleFunc("/calculate-invoice", invoiceHandler.InvoiceCalculationHandler)
 
 	// PDF GEN
-	http.HandleFunc("/generate-pdf", invoiceHandler.GeneratePDF)
+	http.HandleFunc("/generate-pdf", invoiceHandler.GeneratePdf)
 
 	// Session Routes
 	http.HandleFunc("/customer-session", customerHandler.HandleSessionStore)
@@ -123,7 +123,7 @@ func main() {
 
 	http.HandleFunc("/create-invoice", func(w http.ResponseWriter, r *http.Request) {
 		// Execute the template that includes the sidebar
-		err := sideBarTmpl.ExecuteTemplate(w, "createInvoice.html", nil)
+		err := tmpl.ExecuteTemplate(w, "createInvoice.html", nil)
 		if err != nil {
 			http.Error(w, "Error executing template", http.StatusInternalServerError)
 			log.Println(err)

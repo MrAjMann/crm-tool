@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"time"
 
+	pdfGenUtils "github.com/MrAjMann/crm/generator"
 	"github.com/MrAjMann/crm/internal/model"
 	"github.com/MrAjMann/crm/internal/repository"
 )
@@ -16,6 +17,7 @@ import (
 type InvoiceData struct {
 	Invoices []model.Invoice
 }
+
 type InvoiceHandler struct {
 	repo            *repository.InvoiceRepository
 	customerHandler *CustomerHandler
@@ -23,12 +25,9 @@ type InvoiceHandler struct {
 }
 
 func NewInvoiceHandler(repo *repository.InvoiceRepository, tmpl *template.Template, customerHandler *CustomerHandler) *InvoiceHandler {
-	return &InvoiceHandler{
-		repo:            repo,
-		customerHandler: customerHandler,
-		tmpl:            tmpl,
-	}
+	return &InvoiceHandler{repo: repo, tmpl: tmpl, customerHandler: customerHandler}
 }
+
 func (h *InvoiceHandler) GetAllInvoices(w http.ResponseWriter, r *http.Request) {
 	invoices, err := h.repo.GetAllInvoices()
 	if err != nil {
@@ -62,8 +61,6 @@ func (h *InvoiceHandler) AddNewInvoice(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// log.Printf("Form values: %v\n", r.Form)
-
 	customerId, err := getCustomerIdFromRequest(r)
 	if err != nil {
 		log.Printf("Error getting customer ID: %v\n", err)
@@ -79,22 +76,11 @@ func (h *InvoiceHandler) AddNewInvoice(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	log.Printf("getPaymentStatusFromRequest %d", paymentStatusInt)
+
 	itemList, err := h.AddItemsToInvoice(r)
 	if err != nil {
 		log.Printf("Error adding items to invoice: %v\n", err)
 		http.Error(w, "Error adding items to invoice", http.StatusBadRequest)
-		return
-	}
-
-	if h.customerHandler == nil {
-		log.Printf("Error: customerHandler is nil")
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		return
-	}
-
-	if h.customerHandler.repo == nil {
-		log.Printf("Error: customerHandler.repo is nil")
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
@@ -131,134 +117,10 @@ func (h *InvoiceHandler) AddNewInvoice(w http.ResponseWriter, r *http.Request) {
 
 	data := prepareInvoiceData(invoice, itemList, customerAddress, paymentStatusInt)
 
-
-
-    if err := h.tmpl.ExecuteTemplate(w, "modal", data); err != nil {
-        log.Printf("Error executing modal template: %v\n", err)
-        http.Error(w, "Error executing template", http.StatusInternalServerError)
-    }
-}
-
-func getCustomerIdFromRequest(r *http.Request) (int, error) {
-	customerIdStr := r.FormValue("customerId")
-	if customerIdStr == "" {
-		return 0, fmt.Errorf("customer ID is required")
+	if err := h.tmpl.ExecuteTemplate(w, "pdfModal", data); err != nil {
+		log.Printf("Error executing modal template: %v\n", err)
+		http.Error(w, "Error executing template", http.StatusInternalServerError)
 	}
-
-	customerId, err := strconv.Atoi(customerIdStr)
-	if err != nil {
-		return 0, fmt.Errorf("invalid Customer ID")
-	}
-	return customerId, nil
-}
-
-func getPaymentStatusFromRequest(r *http.Request) (int, error) {
-	paymentStatusStr := r.FormValue("paymentStatus")
-	if paymentStatusStr == "" {
-		paymentStatusStr = "0"
-	}
-	paymentStatusInt, err := strconv.Atoi(paymentStatusStr)
-	if err != nil {
-		return 0, fmt.Errorf("invalid payment status")
-	}
-	if paymentStatusInt < int(model.Unpaid) || paymentStatusInt > int(model.Overdue) {
-		return 0, fmt.Errorf("payment status out of range")
-	}
-	return paymentStatusInt, nil
-}
-
-func createInvoiceFromRequest(r *http.Request, customerInfo *model.Customer, itemList []model.ItemList) (*model.Invoice, error) {
-	customerName := fmt.Sprintf("%s %s", customerInfo.FirstName, customerInfo.LastName)
-
-	customerNameFormValue := r.FormValue("customerName")
-	if customerNameFormValue != "" {
-		customerName = customerNameFormValue
-	}
-
-	customerEmail := customerInfo.Email
-	if r.FormValue("email") != "" {
-		customerEmail = r.FormValue("email")
-	}
-
-	companyName := customerInfo.CompanyName
-	if r.FormValue("companyName") != "" {
-		companyName = r.FormValue("companyName")
-	}
-
-	customerPhone := customerInfo.Phone
-	if r.FormValue("phone") != "" {
-		customerPhone = r.FormValue("phone")
-	}
-
-	invoice := &model.Invoice{
-		CustomerId:    customerInfo.Id,
-		CustomerName:  customerName,
-		DueDate:       time.Now().AddDate(0, 0, 30),
-		CustomerEmail: customerEmail,
-		CompanyName:   companyName,
-		CustomerPhone: customerPhone,
-		ItemList:      itemList,
-	}
-
-	return invoice, nil
-}
-
-func (h *InvoiceHandler) saveInvoiceWithItems(invoice *model.Invoice, itemList []model.ItemList) error {
-	if h.repo == nil {
-		log.Println("Error: repo is nil")
-		return fmt.Errorf("repo is nil")
-	}
-
-	// Begin a new transaction
-	log.Println("Starting a new transaction")
-	tx, err := h.repo.BeginTransaction()
-	if err != nil {
-		log.Printf("Database error on beginning transaction: %v\n", err)
-		return fmt.Errorf("database error on beginning transaction: %v", err)
-	}
-
-	// Attempt to add the new invoice
-	log.Println("Attempting to add a new invoice")
-	invoiceId, err := h.repo.AddNewInvoice(tx, *invoice)
-	if err != nil {
-		log.Printf("Database error on creating new invoice: %v\n", err)
-		if rbErr := tx.Rollback(); rbErr != nil {
-			log.Printf("Rollback error after failing to create new invoice: %v\n", rbErr)
-			return fmt.Errorf("database error on creating new invoice: %v, rollback error: %v", err, rbErr)
-		}
-		return fmt.Errorf("database error on creating new invoice: %v", err)
-	}
-
-	log.Printf("Successfully added new invoice with ID: %s\n", invoiceId)
-
-	// Attempt to add items to the invoice
-	for i, item := range itemList {
-		item.InvoiceId = invoiceId
-		log.Printf("Attempting to add item %d: %+v\n", i+1, item)
-		if err := h.repo.AddNewItem(tx, item); err != nil {
-			log.Printf("Database error on adding new item: %v\n", err)
-			if rbErr := tx.Rollback(); rbErr != nil {
-				log.Printf("Rollback error after failing to add new item: %v\n", rbErr)
-				return fmt.Errorf("database error on adding new item: %v, rollback error: %v", err, rbErr)
-			}
-			return fmt.Errorf("database error on adding new item: %v", err)
-		}
-		log.Printf("Successfully added item %d\n", i+1)
-	}
-
-	// Attempt to commit the transaction
-	log.Println("Attempting to commit the transaction")
-	if err := tx.Commit(); err != nil {
-		log.Printf("Database error on committing transaction: %v\n", err)
-		if rbErr := tx.Rollback(); rbErr != nil {
-			log.Printf("Rollback error after failing to commit transaction: %v\n", rbErr)
-			return fmt.Errorf("database error on committing transaction: %v, rollback error: %v", err, rbErr)
-		}
-		return fmt.Errorf("database error on committing transaction: %v", err)
-	}
-
-	log.Println("Transaction committed successfully")
-	return nil
 }
 
 func prepareInvoiceData(invoice *model.Invoice, itemList []model.ItemList, customerAddress *model.Address, paymentStatusInt int) InvoiceData {
@@ -280,6 +142,87 @@ func prepareInvoiceData(invoice *model.Invoice, itemList []model.ItemList, custo
 			},
 		},
 	}
+}
+
+func getCustomerIdFromRequest(r *http.Request) (int, error) {
+	customerIdStr := r.FormValue("customerId")
+	if customerIdStr == "" {
+		return 0, fmt.Errorf("customer ID is required")
+	}
+	return strconv.Atoi(customerIdStr)
+}
+
+func getPaymentStatusFromRequest(r *http.Request) (int, error) {
+	paymentStatusStr := r.FormValue("paymentStatus")
+	if paymentStatusStr == "" {
+		paymentStatusStr = "0"
+	}
+	return strconv.Atoi(paymentStatusStr)
+}
+
+func createInvoiceFromRequest(r *http.Request, customerInfo *model.Customer, itemList []model.ItemList) (*model.Invoice, error) {
+	dueDate, err := time.Parse("2006-01-02", r.FormValue("DueDate"))
+	if err != nil {
+		return nil, fmt.Errorf("invalid due date: %v", err)
+	}
+
+	invoice := &model.Invoice{
+		CustomerId:    customerInfo.Id,
+		CustomerName:  r.FormValue("customerName"),
+		DueDate:       dueDate,
+		CustomerEmail: r.FormValue("email"),
+		CompanyName:   r.FormValue("companyName"),
+		CustomerPhone: r.FormValue("phone"),
+		ItemList:      itemList,
+	}
+	return invoice, nil
+}
+
+func (h *InvoiceHandler) saveInvoiceWithItems(invoice *model.Invoice, itemList []model.ItemList) error {
+	log.Println("Attempting to save invoice with items")
+	if h.repo == nil {
+		log.Printf("Error: repo is nil")
+		return fmt.Errorf("repo is nil")
+	}
+
+	tx, err := h.repo.BeginTransaction()
+	if err != nil {
+		log.Printf("Database error on beginning transaction: %v\n", err)
+		return fmt.Errorf("database error on beginning transaction: %v", err)
+	}
+
+	invoiceId, err := h.repo.AddNewInvoice(tx, *invoice)
+	if err != nil {
+		log.Printf("Database error on creating new invoice: %v\n", err)
+		if rbErr := tx.Rollback(); rbErr != nil {
+			log.Printf("Rollback error after failing to create new invoice: %v\n", rbErr)
+			return fmt.Errorf("database error on creating new invoice: %v, rollback error: %v", err, rbErr)
+		}
+		return fmt.Errorf("database error on creating new invoice: %v", err)
+	}
+
+	log.Printf("Successfully added new invoice with ID: %s\n", invoiceId)
+	invoice.InvoiceId = invoiceId
+
+	for _, item := range itemList {
+		item.InvoiceId = invoiceId // Set the invoice ID for each item as a string
+		if err := h.repo.AddNewItem(tx, item); err != nil {
+			log.Printf("Database error on adding new item: %v\n", err)
+			if rbErr := tx.Rollback(); rbErr != nil {
+				log.Printf("Rollback error after failing to add new item: %v\n", rbErr)
+				return fmt.Errorf("database error on adding new item: %v, rollback error: %v", err, rbErr)
+			}
+			return fmt.Errorf("database error on adding new item: %v", err)
+		}
+	}
+
+	if err := tx.Commit(); err != nil {
+		log.Printf("Database error on committing transaction: %v\n", err)
+		return fmt.Errorf("database error on committing transaction: %v", err)
+	}
+
+	log.Println("Successfully committed transaction")
+	return nil
 }
 
 // Add Items to Invoice
@@ -420,4 +363,39 @@ func (h *InvoiceHandler) InvoiceCalculationHandler(w http.ResponseWriter, r *htt
 		"total": "%.2f"
 	}`, subtotal, tax, total)
 	fmt.Fprint(w, jsonResponse)
+}
+
+func (h *InvoiceHandler) GeneratePdf(w http.ResponseWriter, r *http.Request) {
+	// Parse form data
+	if err := r.ParseForm(); err != nil {
+		log.Printf("Error parsing form: %v\n", err)
+		http.Error(w, "Invalid request payload", http.StatusBadRequest)
+		return
+	}
+
+	invoiceId := r.FormValue("invoiceId")
+	if invoiceId == "" {
+		log.Println("Invoice ID is missing")
+		http.Error(w, "Invoice ID is required", http.StatusBadRequest)
+		return
+	}
+
+	// Fetch the invoice details
+	invoice, err := h.repo.GetInvoiceById(invoiceId)
+	if err != nil {
+		log.Printf("Error fetching invoice: %v\n", err)
+		http.Error(w, "Error fetching invoice", http.StatusInternalServerError)
+		return
+	}
+
+	// Generate the PDF
+	err = pdfGenUtils.CreatePdf(invoice)
+	if err != nil {
+		log.Printf("Error generating PDF: %v\n", err)
+		http.Error(w, "Error generating PDF", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("PDF generated successfully"))
 }

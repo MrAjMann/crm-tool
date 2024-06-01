@@ -141,7 +141,7 @@ func (repo *CustomerRepository) GetAddressByCustomerId(id int) (*model.Address, 
 	address := &model.Address{}
 
 	query := `SELECT  UnitNumber, StreetNumber, StreetName, City, State, Postcode
-                        FROM addresses
+                        FROM address
                         WHERE CustomerId = $1`
 
 	err := repo.db.QueryRow(query, id).Scan(

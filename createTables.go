@@ -188,8 +188,9 @@ func createOtherTables(db *sql.DB) error {
                     StreetNumber TEXT,
                     StreetName TEXT,
                     City TEXT,
+                    State TEXT,
                     Postcode TEXT,
-                    PRIMARY KEY (StreetNumber, StreetName, City, Postcode)
+                    PRIMARY KEY (CustomerId)
                 );
             END IF;
         END
